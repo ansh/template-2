@@ -19,28 +19,56 @@ export default function Templates() {
           Sign Out
         </button>
       </header>
-      <p className="mb-4">This is a protected route. Only authenticated users can see this page.</p>
+      <p className="mb-4">Choose a template to get started with your project:</p>
 
-      {/* Template images */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <Image
-          src="https://placehold.co/300x200/orange/white?text=Template+1"
-          alt="Template 1"
-          width={300}
-          height={200}
-        />
-        <Image
-          src="https://placehold.co/300x200/blue/white?text=Template+2"
-          alt="Template 2"
-          width={300}
-          height={200}
-        />
-        <Image
-          src="https://placehold.co/300x200/green/white?text=Template+3"
-          alt="Template 3"
-          width={300}
-          height={200}
-        />
+      {/* Template grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+        {/* Chat Template */}
+        <div className="border rounded-lg overflow-hidden shadow-lg">
+          <Image
+            src="https://placehold.co/300x200/4299E1/ffffff?text=Chat+App"
+            alt="Chat App Template"
+            width={300}
+            height={200}
+          />
+          <div className="p-4">
+            <h2 className="text-xl font-semibold mb-2">Chat App</h2>
+            <p className="text-gray-600 mb-4">Real-time chat application with AI integration.</p>
+            <Link href="/chat" className="text-blue-500 hover:underline">
+              Try Demo
+            </Link>
+          </div>
+        </div>
+
+        {/* Image Generation Template (Coming Soon) */}
+        <div className="border rounded-lg overflow-hidden shadow-lg opacity-50">
+          <Image
+            src="https://placehold.co/300x200/10B981/ffffff?text=Image+Generation"
+            alt="Image Generation Template"
+            width={300}
+            height={200}
+          />
+          <div className="p-4">
+            <h2 className="text-xl font-semibold mb-2">Image Generation</h2>
+            <p className="text-gray-600 mb-4">AI-powered image creation tool.</p>
+            <span className="text-gray-500">Coming Soon</span>
+          </div>
+        </div>
+
+        {/* Social Media App Template (Coming Soon) */}
+        <div className="border rounded-lg overflow-hidden shadow-lg opacity-50">
+          <Image
+            src="https://placehold.co/300x200/F59E0B/ffffff?text=Social+Media+App"
+            alt="Social Media App Template"
+            width={300}
+            height={200}
+          />
+          <div className="p-4">
+            <h2 className="text-xl font-semibold mb-2">Social Media App</h2>
+            <p className="text-gray-600 mb-4">Build your own social network platform.</p>
+            <span className="text-gray-500">Coming Soon</span>
+          </div>
+        </div>
       </div>
 
       <Link href="/" className="text-blue-500 hover:underline">

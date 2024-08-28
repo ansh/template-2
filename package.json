@@ -16,7 +16,8 @@
     "next": "14.2.7",
     "openai": "^4.56.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "replicate": "^0.32.0"
   },
   "devDependencies": {
     "typescript": "^5",

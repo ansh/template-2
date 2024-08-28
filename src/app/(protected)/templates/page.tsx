@@ -40,8 +40,8 @@ export default function Templates() {
           </div>
         </div>
 
-        {/* Image Generation Template (Coming Soon) */}
-        <div className="border rounded-lg overflow-hidden shadow-lg opacity-50">
+        {/* Image Generation Template */}
+        <div className="border rounded-lg overflow-hidden shadow-lg">
           <Image
             src="https://placehold.co/300x200/10B981/ffffff?text=Image+Generation"
             alt="Image Generation Template"
@@ -51,7 +51,9 @@ export default function Templates() {
           <div className="p-4">
             <h2 className="text-xl font-semibold mb-2">Image Generation</h2>
             <p className="text-gray-600 mb-4">AI-powered image creation tool.</p>
-            <span className="text-gray-500">Coming Soon</span>
+            <Link href="/image-generation" className="text-blue-500 hover:underline">
+              Try Demo
+            </Link>
           </div>
         </div>
 

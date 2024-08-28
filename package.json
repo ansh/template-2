@@ -13,6 +13,7 @@
     "@ai-sdk/openai": "^0.0.54",
     "ai": "^3.3.20",
     "firebase": "^10.13.0",
+    "lucide-react": "^0.436.0",
     "next": "14.2.7",
     "openai": "^4.56.1",
     "react": "^18",

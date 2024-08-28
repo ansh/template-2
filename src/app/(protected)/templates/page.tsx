@@ -57,8 +57,8 @@ export default function Templates() {
           </div>
         </div>
 
-        {/* Social Media App Template (Coming Soon) */}
-        <div className="border rounded-lg overflow-hidden shadow-lg opacity-50">
+        {/* Social Media App Template */}
+        <div className="border rounded-lg overflow-hidden shadow-lg">
           <Image
             src="https://placehold.co/300x200/F59E0B/ffffff?text=Social+Media+App"
             alt="Social Media App Template"
@@ -68,7 +68,9 @@ export default function Templates() {
           <div className="p-4">
             <h2 className="text-xl font-semibold mb-2">Social Media App</h2>
             <p className="text-gray-600 mb-4">Build your own social network platform.</p>
-            <span className="text-gray-500">Coming Soon</span>
+            <Link href="/social-media" className="text-blue-500 hover:underline">
+              Try Demo
+            </Link>
           </div>
         </div>
       </div>

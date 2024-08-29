@@ -9,7 +9,7 @@ Your job is to create an AI chat application with the following specific feature
    - Use the SDK's built-in functions for creating chat completions and managing conversation state.
 
 2. Support for OpenAI and Anthropic AI models:
-   - Integrate both OpenAI's GPT models (e.g., gpt-3.5-turbo, gpt-4) and Anthropic's Claude models.
+   - Integrate both OpenAI's GPT models (gpt-4o) and Anthropic's claude 3.5 sonnet.
    - Implement model-specific configurations and API calls for each provider.
 
 3. Model selection toggle:

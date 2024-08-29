@@ -1,66 +1,41 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "../contexts/AuthContext";
 
 export default function Home() {
-  const { user, loading } = useAuth();
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8">
-      <header className="w-full max-w-5xl flex justify-between items-center mb-12">
-        <h1 className="text-3xl font-bold">TemplateHub</h1>
-        {!loading &&
-          (user ? (
-            <Link href="/templates" className="text-blue-500 hover:underline">
-              My Templates
-            </Link>
-          ) : (
-            <Link href="/signin" className="text-blue-500 hover:underline">
-              Sign In
-            </Link>
-          ))}
-      </header>
-
-      <section className="text-center mb-16">
-        <h2 className="text-4xl font-bold mb-4">Welcome to TemplateHub</h2>
-        <p className="text-xl mb-8">
-          Discover and use amazing web app templates to kickstart your next project
-        </p>
-        <Link
-          href={user ? "/templates" : "/signin"}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-        >
-          {user ? "My Templates" : "Browse Templates"}
-        </Link>
-      </section>
-
-      <section className="w-full max-w-5xl mb-16">
-        <h3 className="text-2xl font-semibold mb-6">Featured Templates</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="border rounded-lg overflow-hidden shadow-lg">
-              <Image
-                src={`https://placehold.co/400x200/${
-                  ["orange", "blue", "green"][i - 1]
-                }/white?text=Template+${i}`}
-                alt={`Template ${i}`}
-                width={400}
-                height={200}
-                className="w-full"
-              />
-              <div className="p-4">
-                <h4 className="font-bold mb-2">Template {i}</h4>
-                <p className="text-sm mb-4">A brief description of Template {i}</p>
-                <Link href={`/template/${i}`} className="text-blue-500 hover:underline">
-                  Learn More
-                </Link>
-              </div>
-            </div>
-          ))}
+      <div>
+        <h2 className="text-2xl font-semibold text-center border p-4 font-mono rounded-md">
+          Get started by choosing a template path from the /paths/ folder.
+        </h2>
+      </div>
+      <div>
+        <h1 className="text-6xl font-bold text-center">Make anything you imagine 🪄</h1>
+        <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
+          This whole page will be replaced when you run your template path.
+        </h2>
+      </div>
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
+          <h3 className="text-xl font-semibold">AI Chat App</h3>
+          <p className="mt-2 text-sm text-gray-600">
+            An intelligent conversational app powered by AI models, featuring real-time responses
+            and seamless integration with Next.js and various AI providers.
+          </p>
         </div>
-      </section>
+        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
+          <h3 className="text-xl font-semibold">AI Image Generation App</h3>
+          <p className="mt-2 text-sm text-gray-600">
+            Create images from text prompts using AI, powered by the Replicate API and Next.js.
+          </p>
+        </div>
+        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
+          <h3 className="text-xl font-semibold">Social Media App</h3>
+          <p className="mt-2 text-sm text-gray-600">
+            A feature-rich social platform with user profiles, posts, and interactions using
+            Firebase and Next.js.
+          </p>
+        </div>
+      </div>
     </main>
   );
 }

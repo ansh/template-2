@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   const result = await streamText({
     model: openai("gpt-4-turbo"),
     messages: convertToCoreMessages(messages),
-    system: "You are a helpful AI assistant for a web app template marketplace.",
+    system: "You are a helpful AI assistant",
   });
 
   return result.toDataStreamResponse();

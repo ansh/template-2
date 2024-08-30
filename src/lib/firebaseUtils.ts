@@ -22,7 +22,13 @@ export const logoutUser = () => signOut(auth);
 export const addDocument = (collectionName: string, data: any) =>
   addDoc(collection(db, collectionName), data);
 
-export const getDocuments = (collectionName: string) => getDocs(collection(db, collectionName));
+export const getDocuments = async (collectionName: string) => {
+  const querySnapshot = await getDocs(collection(db, collectionName));
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
 
 export const updateDocument = (collectionName: string, id: string, data: any) =>
   updateDoc(doc(db, collectionName, id), data);

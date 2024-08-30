@@ -12,8 +12,7 @@ import {
 import { createContext, useContext, useState, ReactNode, FunctionComponent, useRef } from "react";
 
 interface DeepgramContextType {
-  connection: WebSocket | null;
-  connectToDeepgram: (options?: LiveSchema, endpoint?: string) => Promise<void>;
+  connectToDeepgram: () => Promise<void>;
   disconnectFromDeepgram: () => void;
   connectionState: SOCKET_STATES;
   realtimeTranscript: string;
@@ -39,7 +38,7 @@ const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> =
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<MediaRecorder | null>(null);
 
-  const connectToDeepgram = async (options: LiveSchema = {}, endpoint?: string) => {
+  const connectToDeepgram = async () => {
     try {
       setError(null);
       setRealtimeTranscript("");
@@ -60,7 +59,7 @@ const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> =
           }
         });
 
-        audioRef.current!.start(1000);
+        audioRef.current!.start(250);
       };
 
       socket.onmessage = (event) => {
@@ -105,7 +104,6 @@ const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> =
   return (
     <DeepgramContext.Provider
       value={{
-        connection,
         connectToDeepgram,
         disconnectFromDeepgram,
         connectionState,

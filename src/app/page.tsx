@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MicIcon, StopCircleIcon, Loader2 } from 'lucide-react';
+import { MicIcon, StopCircleIcon, Loader2, ListIcon } from 'lucide-react';
 import { useDeepgram } from '../contexts/DeepgramContext';
 import { addDocument } from '../lib/firebaseUtils';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
   const [showText, setShowText] = useState(false);
@@ -78,6 +79,18 @@ export default function Home() {
         </div>
       </div>
 
+      {/* All Notes Button */}
+      {!isRecording && !isLoading && (
+        <div className="absolute top-4 right-4">
+          <Link href="/all-notes">
+            <button className="px-3 py-2 rounded-md bg-gray-700 hover:bg-gray-600 focus:outline-none flex items-center justify-center text-sm">
+              <ListIcon size={16} className="mr-2" />
+              All Notes
+            </button>
+          </Link>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col justify-between p-4">
         <AnimatePresence>
@@ -94,9 +107,25 @@ export default function Home() {
                   <p className="text-lg">Saving your note...</p>
                 </div>
               ) : (
-                <p className="text-lg text-center">
-                  {realtimeTranscript || "Start speaking to see real-time transcription."}
-                </p>
+                <motion.p
+                  className="text-4xl font-bold text-center"
+                  style={{
+                    background: "linear-gradient(45deg, #c0c0c0, #f0f0f0, #c0c0c0)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundSize: "200% 200%",
+                  }}
+                  animate={{
+                    backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+                  }}
+                  transition={{
+                    duration: 5,
+                    ease: "linear",
+                    repeat: Infinity,
+                  }}
+                >
+                  {realtimeTranscript || "Just Speak"}
+                </motion.p>
               )}
             </motion.div>
           )}

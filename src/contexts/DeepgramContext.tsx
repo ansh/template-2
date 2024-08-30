@@ -16,7 +16,7 @@ interface DeepgramContextType {
   connectToDeepgram: (options?: LiveSchema, endpoint?: string) => Promise<void>;
   disconnectFromDeepgram: () => void;
   connectionState: SOCKET_STATES;
-  transcript: string;
+  realtimeTranscript: string;
   error: string | null;
 }
 
@@ -35,14 +35,14 @@ const getApiKey = async (): Promise<string> => {
 const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> = ({ children }) => {
   const [connection, setConnection] = useState<WebSocket | null>(null);
   const [connectionState, setConnectionState] = useState<SOCKET_STATES>(SOCKET_STATES.closed);
-  const [transcript, setTranscript] = useState("");
+  const [realtimeTranscript, setRealtimeTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<MediaRecorder | null>(null);
 
   const connectToDeepgram = async (options: LiveSchema = {}, endpoint?: string) => {
     try {
       setError(null);
-      setTranscript("");
+      setRealtimeTranscript("");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioRef.current = new MediaRecorder(stream);
 
@@ -67,7 +67,7 @@ const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> =
         const data = JSON.parse(event.data);
         if (data.channel && data.channel.alternatives && data.channel.alternatives[0]) {
           const newTranscript = data.channel.alternatives[0].transcript;
-          setTranscript((prev) => prev + " " + newTranscript);
+          setRealtimeTranscript((prev) => prev + " " + newTranscript);
         }
       };
 
@@ -98,6 +98,7 @@ const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> =
     if (audioRef.current) {
       audioRef.current.stop();
     }
+    setRealtimeTranscript("");
     setConnectionState(SOCKET_STATES.closed);
   };
 
@@ -108,7 +109,7 @@ const DeepgramContextProvider: FunctionComponent<DeepgramContextProviderProps> =
         connectToDeepgram,
         disconnectFromDeepgram,
         connectionState,
-        transcript,
+        realtimeTranscript,
         error,
       }}
     >

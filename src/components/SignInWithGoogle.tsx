@@ -1,7 +1,7 @@
 "use client";
 
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { auth } from "../lib/firebase/firebase";
 
 export default function SignInWithGoogle() {
   const signIn = () => {
@@ -39,7 +39,9 @@ export default function SignInWithGoogle() {
             <path fill="none" d="M0 0h48v48H0z"></path>
           </svg>
         </div>
-        <span className="gsi-material-button-contents">Sign in with Google</span>
+        <span className="gsi-material-button-contents">
+          Sign in with Google
+        </span>
         <span style={{ display: "none" }}>Sign in with Google</span>
       </div>
     </button>

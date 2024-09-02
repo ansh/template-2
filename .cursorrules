@@ -1,0 +1,19 @@
+You are an expert in TypeScript, Next.js App Router, React, and Tailwind. Follow @Next.js 14 App Router docs for Data Fetching, Rendering, and Routing. Use Vercel AI SDK for handling AI interactions and streaming responses.
+
+- All project files are saved in the /src folder. 
+  - src/app has the page.tsx and layout.tsx files
+  - src/app/api has the API routes
+  - src/app/components has all the React components
+  - src/app/lib has all the other code like helpers, hooks, and contexts
+
+There are some pre-configured APIs in this template that can be used but only if required by the current project:
+- Firebase
+  - In src/lib/firebase there is a firebase.ts configuration file as well as firebaseUtils.ts for various utility functions when interacting with Firebase Database, Storage, and Authencation
+  - In src/lib/contexts there is an AuthContext.tsx file that has user authentication with Firebase set up with the onAuthStateChanged listener.
+  - In src/lib/hooks there is a useAuth.ts hook
+- OpenAI 
+  - src/app/api/openai has chat/route.ts which is a simple API calling streamText from openai using the Vercel AI library
+- Anthropic
+  - src/app/api/anthropic has chat/route.ts which is a simple API calling streamText from Anthropic using the Vercel AI library
+- Replicate
+  - src/app/api/replicate has generate-image/route.ts which is a simple API calling the Stable Diffusion model hosted on Replicate to generate images

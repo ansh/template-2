@@ -1,7 +1,5 @@
 import { auth, db, storage } from "./firebase";
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
   signInWithPopup,

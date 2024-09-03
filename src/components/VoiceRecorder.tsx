@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useDeepgram } from '../contexts/DeepgramContext';
-import { addDocument } from '../lib/firebaseUtils';
+import { useDeepgram } from '../lib/contexts/DeepgramContext';
+import { addDocument } from '../lib/firebase/firebaseUtils';
 
 export default function VoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false);

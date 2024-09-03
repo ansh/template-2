@@ -11,8 +11,11 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.48",
     "@ai-sdk/openai": "^0.0.54",
+    "@deepgram/sdk": "^3.6.0",
     "ai": "^3.3.20",
+    "date-fns": "^3.6.0",
     "firebase": "^10.13.0",
+    "framer-motion": "^11.3.31",
     "lucide-react": "^0.436.0",
     "next": "14.2.7",
     "react": "^18",
@@ -21,13 +24,13 @@
     "replicate": "^0.32.0"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.7",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.7"
+    "typescript": "^5"
   }
 }

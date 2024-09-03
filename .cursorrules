@@ -6,7 +6,7 @@ You are an expert in TypeScript, Next.js App Router, React, and Tailwind. Follow
   - src/app/components has all the React components
   - src/app/lib has all the other code like helpers, hooks, and contexts
 
-There are some pre-configured APIs in this template that can be used but only if required by the current project:
+There are some pre-configured APIs in this template that can be used but only if required by the current project. These have already been created:
 - Firebase
   - In src/lib/firebase there is a firebase.ts configuration file as well as firebaseUtils.ts for various utility functions when interacting with Firebase Database, Storage, and Authencation
   - In src/lib/contexts there is an AuthContext.tsx file that has user authentication with Firebase set up with the onAuthStateChanged listener.
@@ -17,3 +17,6 @@ There are some pre-configured APIs in this template that can be used but only if
   - src/app/api/anthropic has chat/route.ts which is a simple API calling streamText from Anthropic using the Vercel AI library
 - Replicate
   - src/app/api/replicate has generate-image/route.ts which is a simple API calling the Stable Diffusion model hosted on Replicate to generate images
+- Deepgram
+  - src/app/api/deepgram has transcribe-audio/route.ts which is a simple API that returns the Deepgram API key to be used in the client side to transcribe audio in real-time.
+  - src/lib/contexts has a DeepgramContext.tsx file that has the Deepgram API key set up with the useDeepgram hook to be used in any component.

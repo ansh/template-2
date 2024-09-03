@@ -21,4 +21,4 @@ The flow of the app is as follows:
 - Now, the app displays the note in a list of all notes on the home screen.
 
 
-This application is set-up with existing configuration for APIs and Firebase. Implement all the functionality in the flow above while using the existing codebase as a starting point, but fully modify the codebase to fit the flow and functionality described above.
+This application is set-up with existing configuration for Deepgram APIs and Firebase. Implement all the functionality in the flow above while using the existing codebase as a starting point, but fully modify the codebase to fit the flow and functionality described above.

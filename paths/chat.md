@@ -1,62 +1,89 @@
-# AI Chat App
+# SproutFuture App
 
-You are an expert in TypeScript, Next.js App Router, React, and Tailwind. Follow @Next.js docs for Data Fetching, Rendering, and Routing. Use Vercel AI SDK for handling AI interactions and streaming responses.
+You are an expert in TypeScript, Next.js App Router, React, and Tailwind. Follow @Next.js docs for Data Fetching, Rendering, and Routing. Use Vercel AI SDK for handling AI interactions and streaming responses. Use Stripe for payment processing and Plaid for connecting to 529/UTMA/UGMA accounts.
 
-Your job is to create an AI chat application with the following specific features and key points to implement:
+Your job is to create the SproutFuture application with the following specific features and key points to implement:
 
-1. Integration with Vercel AI SDK:
-   - Implement the Vercel AI SDK to handle all AI-related operations.
-   - Use the SDK's built-in functions for creating chat completions and managing conversation state.
+1. Support for different account types:
 
-2. Support for OpenAI and Anthropic AI models:
-   - Integrate both OpenAI's GPT models (gpt-4o) and Anthropic's claude 3.5 sonnet.
-   - Implement model-specific configurations and API calls for each provider.
+   - Integrate support for UTMA, UGMA, and 529 accounts.
+   - Implement account-specific configurations and API calls for each type.
 
-3. Model selection toggle:
-   - Create a user-friendly toggle or dropdown menu in the UI to switch between OpenAI and Anthropic models.
-   - Ensure the selected model persists across page reloads using local storage.
+2. Account type selection:
 
-4. Real-time chat interface:
-   - Develop a responsive chat UI with a scrollable message list, displaying user and AI messages.
-   - Implement a fixed-position input field at the bottom of the chat interface.
-   - Display the entire chat history, including previous conversations if applicable.
+   - Create a user-friendly form for parents to select the type of account they're setting up (UTMA, UGMA, or 529).
+   - Ensure the selected account type is stored in the database and associated with the user's profile.
 
-5. Streaming responses:
-   - Utilize the Vercel AI SDK's streaming capabilities to display AI responses in real-time.
-   - Implement a typing indicator while the AI is generating a response.
 
-6. Comprehensive error handling and loading states:
+3. Dashboard interface:
+
+   - Develop a responsive dashboard UI with a summary of account information, contribution history, and generated links.
+   - Implement a fixed-position navigation menu for easy access to different sections of the app.
+   - Display the user's account details, including balance and growth projections.
+
+
+4. Link generation and QR codes:
+
+   - Utilize a library like qrcode.react to generate QR codes for donation links.
+   - Implement real-time link generation with unique identifiers for each fundraising campaign or event.
+
+
+5. Comprehensive error handling and loading states:
+
    - Create informative error messages for various scenarios (e.g., API errors, network issues).
    - Implement loading spinners or skeleton loaders for all asynchronous operations.
    - Add retry mechanisms for failed API calls.
 
-7. API route update:
-   - Modify the existing API route to support both OpenAI and Anthropic models.
-   - Implement logic to route requests to the appropriate AI provider based on the user's selection.
-   - Ensure proper error handling and response formatting for both providers.
 
-8. Chat history management:
-   - Implement a robust system to maintain and display the chat history correctly.
-   - Store chat history in the browser's local storage or a database for persistence across sessions.
-   - Provide options to clear chat history or start a new conversation.
+6. API route implementation:
 
-9. Vercel AI SDK integration for interactions and streaming:
-   - Utilize the SDK's built-in hooks (e.g., useChat, useCompletion) for managing chat state and interactions.
-   - Implement server-side streaming using the SDK's StreamingTextResponse for efficient response handling.
+   - Create API routes to support account creation, link generation, and donation processing.
+   - Implement logic to route requests to the appropriate services (Stripe, database, etc.).
+   - Ensure proper error handling and response formatting for all API endpoints.
+
+
+7. Contribution history management:
+
+   - Implement a robust system to maintain and display the contribution history correctly.
+   - Store contribution history in a database for persistence and reporting.
+   - Provide options to filter and sort contribution history.
+
+
+8. Stripe integration for payments and subscriptions:
+
+   - Utilize Stripe's API for processing one-time donations and setting up recurring contributions.
+   - Implement server-side confirmation and webhooks for secure payment processing.
+
+9.  Integration with Stripe API:
+
+   - Implement Stripe API to handle all payment-related operations.
+   - Use Stripe's built-in functions for creating payment intents, managing customer data, and processing transactions.
+
 
 10. Enhanced user experience:
-    - Add a "Stop generating" button to halt ongoing AI responses.
-    - Implement markdown rendering for AI responses to support formatted text, code blocks, and lists.
-    - Add a copy-to-clipboard feature for individual messages.
 
-Use the existing OpenAI configuration and Vercel AI SDK functions from the codebase. Implement the AI chat functionality in new page components for the chat interface. Create all necessary components for the user interface and AI interactions, including but not limited to:
-- ChatInterface component for the main chat UI
-- MessageList component to display chat messages
-- InputField component for user input
-- ModelSelector component for switching between AI providers
+   - Add a "Share" button to easily distribute donation links via email or social media.
+   - Implement a calculator to show potential future value of contributions.
+   - Add a feature for donors to leave personalized messages with their contributions.
+
+11. User authentication using Firebase Auth
+
+   - Ability to login using firebase authorization
+
+
+Use the existing Next.js and TypeScript configuration from the codebase. Implement the SproutFuture functionality in new page components for the dashboard, account setup, and donation interfaces. Create all necessary components for the user interface and payment interactions, including but not limited to:
+
+- DashboardInterface component for the main user dashboard
+- AccountSummary component to display account information
+- LinkGenerator component for creating and managing donation links
+- ContributionHistory component to show past donations
+- AccountSetupForm component for initial account creation
+- DonationForm component for processing contributions
 - ErrorDisplay component for showing error messages
 - LoadingIndicator component for asynchronous operations
 
-Update the existing API route to support both OpenAI and Anthropic models, ensuring proper error handling and response formatting for each provider.
+Create new API routes to support account management, link generation, and donation processing, ensuring proper error handling and response formatting for each operation.
 
 Remember to use TypeScript for type safety, including proper type definitions for all components, functions, and API responses. Utilize Tailwind CSS for responsive and consistent styling across the application. Leverage Next.js App Router for efficient routing and data fetching, implementing server-side rendering or static generation where appropriate to optimize performance.
+
+Ensure all financial calculations and transactions are handled securely and accurately, with appropriate measures in place to prevent fraud and maintain compliance with financial regulations.

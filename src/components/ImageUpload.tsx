@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import Image from "next/image";
 import { Edit } from "lucide-react";
@@ -10,6 +10,7 @@ interface ImageUploadProps {
 
 export default function ImageUpload({ onImageChange, currentImageUrl }: ImageUploadProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(currentImageUrl || null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,7 +20,7 @@ export default function ImageUpload({ onImageChange, currentImageUrl }: ImageUpl
         alert('File size should be less than 10MB');
         return;
       }
-      onImageChange(file);
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -33,6 +34,12 @@ export default function ImageUpload({ onImageChange, currentImageUrl }: ImageUpl
       fileInputRef.current.click();
     }
   };
+
+  useEffect(() => {
+    if (selectedFile) {
+      onImageChange(selectedFile);
+    }
+  }, [selectedFile, onImageChange]);
 
   return (
     <div className="flex items-center justify-center w-full">

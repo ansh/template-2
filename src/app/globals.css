@@ -84,3 +84,12 @@ main {
   max-height: 90vh;
   overflow-y: auto;
 }
+
+@keyframes subtle-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 3s infinite ease-in-out;
+}

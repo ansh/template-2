@@ -16,6 +16,7 @@ interface DashboardInterfaceProps {
   generatedLinks: Array<{childName: string, link: string, imageUrl: string}>;
   onGenerateLink: (childName: string, link: string) => void;
   onUpdateLinks: (links: Array<{childName: string, link: string, imageUrl: string}>) => void;
+  existingChildNames: string[];
 }
 
 const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
@@ -25,7 +26,8 @@ const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
   onProfileClick,
   generatedLinks,
   onGenerateLink,
-  onUpdateLinks
+  onUpdateLinks,
+  existingChildNames
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -115,10 +117,13 @@ const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
               onUpdateLinks={onUpdateLinks} 
             />
           )}
-          <LinkGenerator 
-            onGenerateLink={onGenerateLink} 
-            existingLinksCount={generatedLinks ? generatedLinks.length : 0}
-          />
+          <div className="mt-8">
+            <LinkGenerator
+              onGenerateLink={onGenerateLink}
+              existingLinksCount={generatedLinks.length}
+              existingChildNames={existingChildNames}
+            />
+          </div>
         </div>
       </main>
     </div>

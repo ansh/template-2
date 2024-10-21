@@ -53,6 +53,8 @@ export default function Dashboard() {
     setGeneratedLinks(updatedLinks);
   };
 
+  const existingChildNames = generatedLinks.map(link => link.childName);
+
   if (loading) {
     return <div className="text-black">Loading...</div>;
   }
@@ -71,6 +73,7 @@ export default function Dashboard() {
         generatedLinks={generatedLinks}
         onGenerateLink={handleGenerateLink}
         onUpdateLinks={handleUpdateLinks}
+        existingChildNames={existingChildNames}
       />
       <Toaster />
     </>

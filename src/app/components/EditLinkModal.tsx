@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import ImageUpload from '@/components/ImageUpload';
 import { uploadFile, checkLinkAvailability, saveGeneratedLinks } from '@/lib/firebase/firebaseUtils';
-import { Edit } from 'lucide-react';
+import { Edit, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from 'react-hot-toast';
 
@@ -30,6 +30,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isLinkClaimed, setIsLinkClaimed] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setHasChanges(
@@ -63,10 +64,18 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     let imageUrl = link.imageUrl;
     if (imageFile) {
-      const path = `child-images/${childName}-${Date.now()}`;
-      imageUrl = await uploadFile(imageFile, path);
+      try {
+        const path = `child-images/${childName}-${Date.now()}`;
+        imageUrl = await uploadFile(imageFile, path);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Failed to upload image");
+        setIsSaving(false);
+        return;
+      }
     }
     const updatedLink = { childName, link: currentLink, imageUrl };
     try {
@@ -77,6 +86,8 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
     } catch (error) {
       console.error("Error saving link:", error);
       toast.error("Failed to update link");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -187,17 +198,27 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
             <Button 
               onClick={handleSave} 
               className={`
-                ${isLinkClaimed 
-                  ? 'bg-gradient-to-r from-green-100 to-blue-100 hover:from-green-200 hover:to-blue-200 text-gray-800' 
-                  : 'bg-black text-white hover:bg-gray-800'
+                transition-all duration-300 ease-in-out transform
+                ${hasChanges 
+                  ? 'bg-gradient-to-b from-green-100 to-blue-100 text-black hover:from-green-200 hover:to-blue-200' 
+                  : 'bg-gray-300 text-gray-500'
                 }
-                transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 hover:shadow-md
+                font-bold py-2 px-4 rounded
+                ${hasChanges ? 'hover:scale-105 active:scale-95 hover:shadow-md animate-subtle-pulse' : ''}
               `}
+              disabled={!hasChanges || isSaving}
             >
-              Save
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
-            <Button onClick={handleDelete} className="bg-red-500 text-white hover:bg-red-600">Delete</Button>
-            <Button onClick={handleCancel} variant="outline">Cancel</Button>
+            <Button onClick={handleDelete} className="bg-red-500 text-white hover:bg-red-600" disabled={isSaving}>Delete</Button>
+            <Button onClick={handleCancel} variant="outline" disabled={isSaving}>Cancel</Button>
           </div>
         </div>
       </div>

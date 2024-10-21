@@ -10,24 +10,33 @@ import { Plus } from 'lucide-react'; // Import the Plus icon
 interface LinkGeneratorProps {
   onGenerateLink: (childName: string, link: string) => void;
   existingLinksCount: number;
+  existingChildNames: string[]; // Make sure this is not optional
 }
 
-const LinkGenerator: React.FC<LinkGeneratorProps> = ({ onGenerateLink, existingLinksCount }) => {
+const LinkGenerator: React.FC<LinkGeneratorProps> = ({ onGenerateLink, existingLinksCount, existingChildNames }) => {
   const [childName, setChildName] = useState('');
 
   const generateLink = () => {
-    if (childName.trim()) {
+    const trimmedChildName = childName.trim();
+    if (trimmedChildName) {
       if (existingLinksCount >= 10) {
         toast.error("You've reached the maximum number of links (10). Please delete an existing link to create a new one.");
+        return;
+      }
+
+      if (existingChildNames.includes(trimmedChildName)) {
+        toast.error("A link for this child name already exists. Please use a different name.");
         return;
       }
 
       const uniqueId = Math.random().toString(36).substring(2, 15);
       const link = `https://sproutfuture.com/donate/${uniqueId}`;
       
-      onGenerateLink(childName, link);
+      onGenerateLink(trimmedChildName, link);
       
-      toast.success("Success! Your child's future is ready to grow!");
+      toast.success("Success!\nYour child's future is ready to Sprout!", {
+        duration: 5000, // 5 seconds
+      });
       confetti({
         particleCount: 100,
         spread: 70,

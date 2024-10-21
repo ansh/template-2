@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { QrCode, Edit } from 'lucide-react'
+import { QrCode, Edit, Copy } from 'lucide-react'
 import EditLinkModal from './EditLinkModal';
 import Image from 'next/image';
 import { saveGeneratedLinks, deleteGeneratedLink } from '@/lib/firebase/firebaseUtils';
@@ -31,10 +31,7 @@ const GeneratedLinks: React.FC<GeneratedLinksProps> = ({ links, userId, onUpdate
   const handleSave = async (updatedLink: GeneratedLink) => {
     try {
       const originalLink = links.find(link => link.link === updatedLink.link);
-      await saveGeneratedLinks(userId, updatedLink, originalLink);
-      const updatedLinks = links.map(link => 
-        link.link === updatedLink.link ? updatedLink : link
-      );
+      const updatedLinks = await saveGeneratedLinks(userId, updatedLink, originalLink);
       onUpdateLinks(updatedLinks);
       toast.success("Link updated successfully");
     } catch (error) {
@@ -67,6 +64,15 @@ const GeneratedLinks: React.FC<GeneratedLinksProps> = ({ links, userId, onUpdate
     }
   };
 
+  const handleCopyLink = (link: string) => {
+    navigator.clipboard.writeText(link).then(() => {
+      toast.success('Link copied to clipboard!');
+    }).catch((err) => {
+      console.error('Failed to copy link: ', err);
+      toast.error('Failed to copy link');
+    });
+  };
+
   return (
     <Card className="bg-white">
       <CardHeader>
@@ -87,16 +93,33 @@ const GeneratedLinks: React.FC<GeneratedLinksProps> = ({ links, userId, onUpdate
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-semibold text-lg">{link.childName}</h3>
-                  <p className="text-sm text-gray-600 break-all">{link.link}</p>
+                  <div className="flex items-center">
+                    <Button
+                      onClick={() => handleCopyLink(link.link)}
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 mr-2 hover:bg-transparent"
+                    >
+                      <Copy size={16} className="text-gray-500 hover:text-gray-700" />
+                    </Button>
+                    <p className="text-sm text-gray-600 break-all">{link.link}</p>
+                  </div>
                 </div>
-                <Button onClick={() => handleEdit(link)} variant="outline" size="sm">
-                  <Edit size={16} />
+                <Button 
+                  onClick={() => handleEdit(link)} 
+                  variant="outline" 
+                  size="sm"
+                  className="bg-gradient-to-r from-green-100 to-blue-100 hover:from-green-200 hover:to-blue-200 text-gray-800 border-none shadow-md transition-all duration-300 ease-in-out transform hover:scale-105"
+                >
+                  <Edit size={16} className="mr-2" />
+                  Edit
                 </Button>
               </div>
               <div className="mt-2 space-x-2">
                 <Button 
                   onClick={() => setActiveQR(activeQR === link.link ? null : link.link)}
                   size="sm"
+                  className="bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
                 >
                   {activeQR === link.link ? 'Hide QR Code' : 'Show QR Code'}
                 </Button>

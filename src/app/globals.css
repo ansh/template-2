@@ -31,3 +31,56 @@ body {
     text-wrap: balance;
   }
 }
+
+@layer base {
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-300;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientAnimation 3s ease infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Ensure modals are always on top */
+.fixed {
+  z-index: 50;
+}
+
+/* Adjust the stacking context for the main content */
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure the modal content is scrollable if it's too tall */
+.modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}

@@ -29,6 +29,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isLinkClaimed, setIsLinkClaimed] = useState(false);
 
   useEffect(() => {
     setHasChanges(
@@ -58,6 +59,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
     setShowCustomLinkInput(false);
     setCustomLink('');
     setIsLinkAvailable(null);
+    setIsLinkClaimed(true);
   };
 
   const handleSave = async () => {
@@ -70,6 +72,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
     try {
       await saveGeneratedLinks(userId, updatedLink, link);
       onSave(updatedLink);
+      setIsLinkClaimed(false);  // Reset the claimed state after saving
       onClose();
     } catch (error) {
       console.error("Error saving link:", error);
@@ -107,8 +110,8 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-        <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white p-6 rounded-lg w-96 shadow-lg max-h-[90vh] overflow-y-auto">
           <h2 className="text-xl font-bold mb-4">Edit Link</h2>
           <div className="mb-4">
             <Label htmlFor="childName">Child's Name</Label>
@@ -133,7 +136,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
             </div>
           </div>
           {showCustomLinkInput && (
-            <div className="mb-4">
+            <div className="mb-4 animate-fadeIn">
               <Label htmlFor="customLink">Custom Link</Label>
               <div className="flex items-center mt-1">
                 <span className="bg-gray-100 text-gray-500 px-2 py-2 rounded-l-md">
@@ -144,7 +147,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
                   value={customLink}
                   onChange={(e) => setCustomLink(e.target.value)}
                   placeholder="your-custom-link"
-                  className="flex-grow rounded-l-none"
+                  className="flex-grow rounded-l-none text-black placeholder-gray-300"
                 />
               </div>
               <div className="mt-2">
@@ -156,16 +159,18 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
                   {isCheckingLink ? 'Checking...' : 'Check Availability'}
                 </Button>
               </div>
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              {error && (
+                <p className="text-red-500 text-sm mt-1 animate-fadeIn">{error}</p>
+              )}
               {isLinkAvailable !== null && !error && (
-                <div className="mt-2">
+                <div className="mt-2 animate-fadeIn">
                   <p className={`text-sm ${isLinkAvailable ? 'text-green-600' : 'text-red-600'}`}>
                     {isLinkAvailable ? 'Link is available!' : 'Link is not available.'}
                   </p>
                   {isLinkAvailable && (
                     <Button 
                       onClick={handleClaimLink} 
-                      className="w-full mt-2 bg-gradient-to-r from-green-100 to-blue-100 text-black font-bold py-2 px-4 rounded transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 hover:shadow-md animate-gradient"
+                      className="w-full mt-2 bg-gradient-to-r from-green-100 to-blue-100 text-black font-bold py-2 px-4 rounded transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 hover:shadow-md animate-gradient animate-fadeIn"
                     >
                       Claim Link
                     </Button>
@@ -179,7 +184,18 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ link, userId, onSave, onD
             <ImageUpload onImageChange={setImageFile} currentImageUrl={link.imageUrl} />
           </div>
           <div className="flex justify-between">
-            <Button onClick={handleSave} className="bg-black text-white hover:bg-gray-800">Save</Button>
+            <Button 
+              onClick={handleSave} 
+              className={`
+                ${isLinkClaimed 
+                  ? 'bg-gradient-to-r from-green-100 to-blue-100 hover:from-green-200 hover:to-blue-200 text-gray-800' 
+                  : 'bg-black text-white hover:bg-gray-800'
+                }
+                transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 hover:shadow-md
+              `}
+            >
+              Save
+            </Button>
             <Button onClick={handleDelete} className="bg-red-500 text-white hover:bg-red-600">Delete</Button>
             <Button onClick={handleCancel} variant="outline">Cancel</Button>
           </div>

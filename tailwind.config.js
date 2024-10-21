@@ -70,6 +70,8 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         'gradient': 'gradientAnimation 3s ease infinite',
+        'fadeIn': 'fadeIn 0.3s ease-out',
+        'glow': 'glow 2s ease-in-out infinite',
       },
     },
   },

@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { getAccountBalance, getGeneratedLinks, saveGeneratedLinks } from '@/lib/firebase/firebaseUtils';
 import DashboardInterface from '@/app/components/DashboardInterface';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const [accountBalance, setAccountBalance] = useState(0)
@@ -35,12 +36,11 @@ export default function Dashboard() {
     const newLink = { childName, link, imageUrl: '/default-user-icon.png' };
     if (user) {
       try {
-        await saveGeneratedLinks(user.uid, newLink);
-        const updatedLinks = await getGeneratedLinks(user.uid);
+        const updatedLinks = await saveGeneratedLinks(user.uid, newLink);
         setGeneratedLinks(updatedLinks);
       } catch (error) {
         console.error("Error generating link:", error);
-        // Here you might want to show an error message to the user
+        toast.error("Failed to generate link. Please try again.");
       }
     }
   };
@@ -49,18 +49,8 @@ export default function Dashboard() {
     console.log("Navigate to profile page");
   }
 
-  const handleUpdateLinks = async (updatedLinks: Array<{childName: string, link: string, imageUrl: string}>) => {
+  const handleUpdateLinks = (updatedLinks: Array<{childName: string, link: string, imageUrl: string}>) => {
     setGeneratedLinks(updatedLinks);
-    if (user) {
-      try {
-        for (const link of updatedLinks) {
-          await saveGeneratedLinks(user.uid, link, link); // Pass the same link as both new and original to indicate an update
-        }
-      } catch (error) {
-        console.error("Error updating links:", error);
-        // Here you might want to show an error message to the user
-      }
-    }
   };
 
   if (loading) {

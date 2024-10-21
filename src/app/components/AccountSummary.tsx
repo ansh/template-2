@@ -9,8 +9,8 @@ const AccountSummary: React.FC<AccountSummaryProps> = ({ balance }) => {
   return (
     <Card className="bg-white">
       <CardHeader>
-        <CardTitle className="text-black">Account Summary</CardTitle>
-        <CardDescription className="text-gray-600">Overview of your child's investment account</CardDescription>
+        <CardTitle className="text-black">Summary</CardTitle>
+        <CardDescription className="text-gray-600">Overview of contributions</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold text-black">${balance.toFixed(2)}</p>

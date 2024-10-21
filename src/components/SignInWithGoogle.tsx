@@ -1,13 +1,30 @@
 "use client";
 
 import { signInWithGoogle } from '@/lib/firebase/firebaseUtils';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function SignInWithGoogle() {
+  const router = useRouter();
+
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Error signing in with Google', error);
+      if (error instanceof Error) {
+        if (error.name === 'PopupClosedByUserError') {
+          console.log('Sign-in popup closed by user');
+          // Optionally show a user-friendly message
+          // toast.info('Sign-in cancelled');
+        } else {
+          console.error('Error signing in with Google', error);
+          toast.error('Failed to sign in. Please try again.');
+        }
+      } else {
+        console.error('Unknown error during sign-in', error);
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     }
   };
 

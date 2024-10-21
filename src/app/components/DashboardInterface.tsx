@@ -4,6 +4,9 @@ import LinkGenerator from './LinkGenerator';
 import GeneratedLinks from './GeneratedLinks';
 import Image from 'next/image';
 import { User } from 'lucide-react'
+import { signOut } from '@/lib/firebase/firebaseUtils';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 interface DashboardInterfaceProps {
   user: any;
@@ -27,6 +30,7 @@ const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const defaultUserIcon = '/default-user-icon.png';
+  const router = useRouter();
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,11 +45,30 @@ const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     };
   }, []);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 p-4 text-black">
-      <main className="container mx-auto max-w-4xl">
+      <main className="container mx-auto max-w-4xl relative z-10">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">SproutFuture Dashboard</h1>
+          <div className="flex items-center">
+            <Image 
+              src="/sproutfuture-logo.png" // Make sure to add your logo file to the public folder
+              alt="SproutFuture Logo"
+              width={50}
+              height={50}
+              className="mr-4"
+            />
+            <h1 className="text-3xl font-bold">SproutFuture Dashboard</h1>
+          </div>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -72,7 +95,7 @@ const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                     Profile
                   </button>
                   <button
-                    onClick={onSignOut}
+                    onClick={handleSignOut}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
                     role="menuitem"
                   >
@@ -85,14 +108,17 @@ const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
         </div>
         <div className="grid grid-cols-1 gap-8">
           <AccountSummary balance={accountBalance} />
-          {generatedLinks.length > 0 && (
+          {generatedLinks && generatedLinks.length > 0 && (
             <GeneratedLinks 
               links={generatedLinks} 
               userId={user.uid} 
               onUpdateLinks={onUpdateLinks} 
             />
           )}
-          <LinkGenerator onGenerateLink={onGenerateLink} />
+          <LinkGenerator 
+            onGenerateLink={onGenerateLink} 
+            existingLinksCount={generatedLinks ? generatedLinks.length : 0}
+          />
         </div>
       </main>
     </div>

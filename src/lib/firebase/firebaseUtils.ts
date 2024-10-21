@@ -1,13 +1,17 @@
 import { auth, db, storage } from "./firebase";
-import { signOut, GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
+import { signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
 import { doc, updateDoc, getDoc, setDoc, addDoc, getDocs, deleteDoc, arrayUnion, arrayRemove, collection, serverTimestamp, Timestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from "firebase/storage";
 
 // Auth functions
-export const logoutUser = () => signOut(auth);
+export const logoutUser = () => firebaseSignOut(auth);
 
 export const signInWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
+  
   try {
     const result = await signInWithPopup(auth, provider);
     await createUserDocuments(result.user);
@@ -129,10 +133,11 @@ export const saveGeneratedLinks = async (userId: string, newLink: {childName: st
   
   try {
     const docSnap = await getDoc(userLinksRef);
+    let links: any[] = [];
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      let links = Array.isArray(data.links) ? data.links : [];
+      links = Array.isArray(data.links) ? data.links : [];
 
       if (originalLink) {
         // Editing an existing link
@@ -153,49 +158,57 @@ export const saveGeneratedLinks = async (userId: string, newLink: {childName: st
                 });
             }
             return {
-              ...link,
               ...newLink,
               lastEditedAt: Timestamp.now()
             };
           }
           return link;
         });
+
+        // Update customLinks collection if the link has changed
+        if (originalLink.link !== newLink.link) {
+          const oldCustomLinkRef = doc(db, "customLinks", originalLink.link.split('/').pop() || '');
+          await deleteDoc(oldCustomLinkRef);
+          
+          const newCustomLinkRef = doc(db, "customLinks", newLink.link.split('/').pop() || '');
+          await setDoc(newCustomLinkRef, { userId: userId });
+        }
       } else {
         // Adding a new link
         if (links.length >= 10) {
           throw new Error("Maximum number of links (10) reached.");
         }
-        links.push({
-          ...newLink,
-          createdAt: Timestamp.now(),
-          lastEditedAt: Timestamp.now()
-        });
-      }
+        // Check if the link already exists
+        const existingLinkIndex = links.findIndex((link: any) => link.link === newLink.link);
+        if (existingLinkIndex !== -1) {
+          // Update the existing link
+          links[existingLinkIndex] = {
+            ...newLink,
+            lastEditedAt: Timestamp.now()
+          };
+        } else {
+          // Add a new link
+          links.push({
+            ...newLink,
+            createdAt: Timestamp.now(),
+            lastEditedAt: Timestamp.now()
+          });
+        }
 
-      await updateDoc(userLinksRef, { links });
-
-      // Update customLinks collection if the link has changed
-      if (originalLink && originalLink.link !== newLink.link) {
-        const oldCustomLinkRef = doc(db, "customLinks", originalLink.link.split('/').pop() || '');
-        await deleteDoc(oldCustomLinkRef);
-        
-        const newCustomLinkRef = doc(db, "customLinks", newLink.link.split('/').pop() || '');
-        await setDoc(newCustomLinkRef, { userId: userId });
-      } else if (!originalLink) {
         // Add new custom link for a new entry
         const customLinkRef = doc(db, "customLinks", newLink.link.split('/').pop() || '');
         await setDoc(customLinkRef, { userId: userId });
       }
 
+      await updateDoc(userLinksRef, { links });
     } else {
       // Create new document with the link
-      await setDoc(userLinksRef, {
-        links: [{
-          ...newLink,
-          createdAt: Timestamp.now(),
-          lastEditedAt: Timestamp.now()
-        }]
-      });
+      links = [{
+        ...newLink,
+        createdAt: Timestamp.now(),
+        lastEditedAt: Timestamp.now()
+      }];
+      await setDoc(userLinksRef, { links });
 
       // Add to customLinks collection
       const customLinkRef = doc(db, "customLinks", newLink.link.split('/').pop() || '');
@@ -204,6 +217,8 @@ export const saveGeneratedLinks = async (userId: string, newLink: {childName: st
 
     // Track edit event
     await trackLinkEditEvent(userId, newLink);
+
+    return links; // Return the updated links array
 
   } catch (error) {
     console.error("Error saving generated link:", error);
@@ -269,4 +284,13 @@ const trackLinkDeleteEvent = async (userId: string, deletedLink: {childName: str
     link: deletedLink.link,
     deletedAt: serverTimestamp()
   });
+};
+
+export const signOut = async () => {
+  try {
+    await firebaseSignOut(auth);
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw error;
+  }
 };

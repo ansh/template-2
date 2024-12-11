@@ -71,8 +71,13 @@ export default function YouTubeQuotes() {
   const exportAsPNG = async () => {
     if (!exportRef.current) return;
     
-    const canvas = await html2canvas(exportRef.current);
-    const image = canvas.toDataURL('image/png');
+    const canvas = await html2canvas(exportRef.current, {
+      scale: 3, // Increase quality
+      logging: false,
+      useCORS: true,
+      allowTaint: true
+    });
+    const image = canvas.toDataURL('image/png', 1.0);
     const link = document.createElement('a');
     link.href = image;
     link.download = 'youtube-quotes.png';
@@ -144,10 +149,12 @@ export default function YouTubeQuotes() {
       {selectedQuotes.length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Selected Quotes</h2>
-          <div ref={exportRef} className="bg-white p-6 rounded-lg shadow-lg">
+          <div ref={exportRef} className="bg-white p-8 rounded-lg shadow-lg max-w-2xl">
             {selectedQuotes.map((quote, index) => (
-              <div key={index} className="mb-4 p-4 bg-gray-100 rounded">
-                {formatText(quote)}
+              <div key={index} className="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-gray-800 text-sm leading-relaxed font-light tracking-wide">
+                  {formatText(quote)}
+                </p>
               </div>
             ))}
           </div>

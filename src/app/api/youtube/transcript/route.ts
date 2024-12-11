@@ -30,6 +30,7 @@ function extractMeaningfulQuotes(text: string): string[] {
 export async function POST(req: Request) {
   try {
     const { videoUrl } = await req.json();
+    
     if (!videoUrl) {
       return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
     }
@@ -38,39 +39,50 @@ export async function POST(req: Request) {
     if (!videoId) {
       return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
     }
-    
-    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
+
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
     if (!transcript || transcript.length === 0) {
       return NextResponse.json({ error: "No transcript available" }, { status: 404 });
     }
-    
+
     const fullText = transcript.map(t => t.text).join(' ');
     const quotes = extractMeaningfulQuotes(fullText);
-    
-    // Get video metadata
+
     const apiKey = process.env.GOOGLE_CONSOLE_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "YouTube API key not configured" }, { status: 500 });
+      return NextResponse.json({ 
+        quotes,
+        fullText,
+        metadata: null,
+        error: "YouTube API key not configured" 
+      });
     }
 
-    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
-    const response = await axios.get(apiUrl);
-    
-    const videoData = response.data.items[0].snippet;
-    const metadata = {
-      title: videoData.title,
-      channelTitle: videoData.channelTitle,
-      thumbnail: videoData.thumbnails.high.url
-    };
-
-    return NextResponse.json({
-      quotes,
-      fullText,
-      metadata
-    });
-
+    try {
+      const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
+      const response = await axios.get(apiUrl);
+      const videoData = response.data.items[0].snippet;
+      
+      return NextResponse.json({
+        quotes,
+        fullText,
+        metadata: {
+          title: videoData.title,
+          channelTitle: videoData.channelTitle,
+          thumbnail: videoData.thumbnails.high.url
+        }
+      });
+    } catch (e) {
+      // Return quotes even if metadata fetch fails
+      return NextResponse.json({
+        quotes,
+        fullText,
+        metadata: null
+      });
+    }
   } catch (error: any) {
-    const errorMessage = error.message || "Failed to process video";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || "Failed to process video" 
+    }, { status: 500 });
   }
 }

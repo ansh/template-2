@@ -126,7 +126,7 @@ export default function YouTubeQuotes() {
         </div>
       )}
 
-      {showSelection && quotes[currentQuoteIndex] && (
+      {quotes.length > 0 && showSelection && (
         <div className="mt-6">
           <h2 className="text-xl font-bold mb-4">Select Quotes ({currentQuoteIndex + 1}/{quotes.length})</h2>
           <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -145,6 +145,7 @@ export default function YouTubeQuotes() {
                 Keep
               </button>
             </div>
+            <p className="mt-4 text-sm text-gray-600 text-center">Showing meaningful quotes extracted from the video</p>
           </div>
         </div>
       )}

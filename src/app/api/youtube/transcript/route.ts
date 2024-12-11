@@ -10,18 +10,20 @@ function getVideoId(url: string) {
 }
 
 function extractMeaningfulQuotes(text: string): string[] {
-  // Split into sentences
-  const sentences = text.split(/[.!?]+/).map(s => s.trim());
+  const sentences = text.split(/[.!?]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
   
-  // Filter for meaningful quotes (length between 50-200 chars, no timestamps)
   const meaningfulQuotes = sentences.filter(sentence => {
-    return sentence.length >= 50 && 
-           sentence.length <= 200 && 
-           !/^\d+:\d+/.test(sentence) &&
-           !/^\[.*\]/.test(sentence);
+    const hasMinWords = sentence.split(' ').length >= 5;
+    const hasGoodLength = sentence.length >= 50 && sentence.length <= 200;
+    const isNotTimestamp = !/^\d+:\d+/.test(sentence);
+    const isNotBracket = !/^\[.*\]/.test(sentence);
+    const hasLetters = /[a-zA-Z]/.test(sentence);
+    
+    return hasMinWords && hasGoodLength && isNotTimestamp && isNotBracket && hasLetters;
   });
 
-  // Get top 10 quotes
   return meaningfulQuotes.slice(0, 10);
 }
 

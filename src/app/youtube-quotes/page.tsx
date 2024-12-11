@@ -150,6 +150,17 @@ export default function YouTubeQuotes() {
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Selected Quotes</h2>
           <div ref={exportRef} className="bg-white p-8 rounded-lg shadow-lg max-w-2xl">
+            {metadata && (
+              <div className="mb-8 text-center">
+                <img 
+                  src={metadata.thumbnail} 
+                  alt={metadata.title}
+                  className="mx-auto rounded-lg shadow-md mb-4 max-w-full h-auto"
+                />
+                <h2 className="text-xl font-bold text-gray-800">{metadata.title}</h2>
+                <p className="text-sm text-gray-600 mt-1">{metadata.channelTitle}</p>
+              </div>
+            )}
             {selectedQuotes.map((quote, index) => (
               <div key={index} className="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-100">
                 <p className="text-gray-800 text-sm leading-relaxed font-light tracking-wide">

@@ -6,6 +6,7 @@ import { useState } from 'react';
 export default function YouTubeQuotes() {
   const [videoUrl, setVideoUrl] = useState('');
   const [quotes, setQuotes] = useState<string>('');
+  const [fullTranscript, setFullTranscript] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,6 +22,7 @@ export default function YouTubeQuotes() {
       
       const data = await response.json();
       setQuotes(data.quotes);
+      setFullTranscript(data.fullText);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -73,6 +75,15 @@ export default function YouTubeQuotes() {
           >
             Download Quotes
           </button>
+        </div>
+      )}
+
+      {fullTranscript && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Full Transcript</h2>
+          <div className="bg-gray-100 p-4 rounded whitespace-pre-line">
+            {fullTranscript}
+          </div>
         </div>
       )}
     </div>

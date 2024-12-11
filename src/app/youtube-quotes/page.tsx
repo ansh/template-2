@@ -185,10 +185,26 @@ export default function YouTubeQuotes() {
 
       {fullTranscript && (
         <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">Full Transcript</h2>
-          <div className="bg-gray-100 p-4 rounded whitespace-pre-line">
-            {formatText(fullTranscript)}
-          </div>
+          <details className="w-full">
+            <summary className="text-xl font-bold mb-4 cursor-pointer hover:text-gray-600">
+              Full Transcript
+            </summary>
+            <div className="bg-gray-100 p-4 rounded whitespace-pre-line mb-2">
+              {formatText(fullTranscript)}
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(formatText(fullTranscript));
+                alert('Transcript copied to clipboard!');
+              }}
+              className="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded inline-flex items-center"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              Copy to Clipboard
+            </button>
+          </details>
         </div>
       )}
     </div>

@@ -37,9 +37,17 @@ export default function YouTubeQuotes() {
       });
       
       const data = await response.json();
-      const quotesArray = data.quotes.split('\n').filter((q: string) => q.trim());
+      if (data.error) {
+        console.error('Error:', data.error);
+        return;
+      }
+      const quotesArray = data.quotes?.split('\n').filter((q: string) => q.trim()) || [];
       setQuotes(quotesArray);
-      setFullTranscript(data.fullText);
+      setFullTranscript(data.fullText || '');
+      if (data.metadata) {
+        console.log('Video metadata:', data.metadata);
+        // Handle metadata if needed
+      }
       setShowSelection(true);
     } catch (error) {
       console.error('Error:', error);

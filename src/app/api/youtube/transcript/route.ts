@@ -1,10 +1,38 @@
 
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
-import OpenAI from "openai";
 import axios from 'axios';
 
-const openai = new OpenAI();
+function getVideoId(url: string) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+function chunkText(text: string, maxLength: number = 2000): string[] {
+  const sentences = text.split(/[.!?]+/);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const sentence of sentences) {
+    if ((currentChunk + sentence).length > maxLength) {
+      if (currentChunk) chunks.push(currentChunk.trim());
+      currentChunk = sentence;
+    } else {
+      currentChunk += sentence + '. ';
+    }
+  }
+  
+  if (currentChunk) chunks.push(currentChunk.trim());
+  return chunks;
+}
+
+function extractQuotes(text: string, minLength: number = 50): string[] {
+  const sentences = text.split(/[.!?]+/).map(s => s.trim());
+  return sentences
+    .filter(s => s.length >= minLength && s.length <= 200)
+    .slice(0, 20); // Get top 20 quotes
+}
 
 export async function POST(req: Request) {
   try {
@@ -13,16 +41,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
     }
 
-    const videoId = (() => {
-      const urlParams = new URL(videoUrl).searchParams;
-      return urlParams.get('v');
-    })();
-
+    const videoId = getVideoId(videoUrl);
     if (!videoId) {
       return NextResponse.json({ error: "Invalid YouTube URL - Could not extract video ID" }, { status: 400 });
     }
     
-    // Get transcript
     const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
     if (!transcript || transcript.length === 0) {
       return NextResponse.json({ error: "No transcript available for this video" }, { status: 404 });
@@ -47,28 +70,22 @@ export async function POST(req: Request) {
     const videoData = response.data.items[0].snippet;
     const metadata = {
       title: videoData.title,
-      thumbnail: videoData.thumbnails.high.url,
-      description: videoData.description,
-      publishedAt: videoData.publishedAt,
-      channelTitle: videoData.channelTitle
+      channelTitle: videoData.channelTitle,
+      thumbnail: videoData.thumbnails.high.url
     };
 
-    const aiResponse = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [{
-        role: "system",
-        content: "Extract 5 most meaningful and important quotes from the following transcript. Format each quote on a new line with quotation marks."
-      }, {
-        role: "user",
-        content: fullText
-      }]
+    // Chunk the text and extract quotes from each chunk
+    const chunks = chunkText(fullText);
+    const allQuotes = chunks.flatMap(chunk => extractQuotes(chunk));
+    const uniqueQuotes = [...new Set(allQuotes)];
+    
+    return NextResponse.json({
+      quotes: uniqueQuotes.join('\n'),
+      fullText,
+      metadata
     });
 
-    const quotes = aiResponse.choices[0].message.content;
-    
-    return NextResponse.json({ quotes, fullText, metadata });
   } catch (error: any) {
-    console.error("Error processing video:", error);
     const errorMessage = error.message || "Failed to process video";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

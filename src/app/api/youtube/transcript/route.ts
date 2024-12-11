@@ -2,16 +2,34 @@
 import { NextResponse } from "next/server";
 import { YoutubeTranscript } from 'youtube-transcript';
 import OpenAI from "openai";
+import axios from 'axios';
 
 const openai = new OpenAI();
 
 export async function POST(req: Request) {
   try {
     const { videoUrl } = await req.json();
+    const videoId = videoUrl.split('v=')[1];
+    
+    // Get transcript
     const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
     const fullText = transcript.map(t => t.text).join(' ');
     
-    const response = await openai.chat.completions.create({
+    // Get video metadata
+    const apiKey = process.env.GOOGLE_CONSOLE_API_KEY;
+    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
+    const response = await axios.get(apiUrl);
+    
+    const videoData = response.data.items[0].snippet;
+    const metadata = {
+      title: videoData.title,
+      thumbnail: videoData.thumbnails.high.url,
+      description: videoData.description,
+      publishedAt: videoData.publishedAt,
+      channelTitle: videoData.channelTitle
+    };
+
+    const aiResponse = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{
         role: "system",
@@ -22,9 +40,9 @@ export async function POST(req: Request) {
       }]
     });
 
-    const quotes = response.choices[0].message.content;
+    const quotes = aiResponse.choices[0].message.content;
     
-    return NextResponse.json({ quotes, fullText });
+    return NextResponse.json({ quotes, fullText, metadata });
   } catch (error) {
     console.error("Error processing video:", error);
     return NextResponse.json({ error: "Failed to process video" }, { status: 500 });

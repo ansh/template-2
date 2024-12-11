@@ -107,8 +107,10 @@ export default function YouTubeQuotes() {
       </form>
 
       {loading && (
-        <div className="text-center mt-4">
-          <div className="animate-pulse">Loading...</div>
+        <div className="text-center mt-4 space-y-2">
+          <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          <div className="text-lg">Extracting quotes from video...</div>
+          <div className="text-sm text-gray-600">This may take a few moments</div>
         </div>
       )}
 

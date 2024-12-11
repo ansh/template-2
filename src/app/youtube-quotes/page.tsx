@@ -124,24 +124,29 @@ export default function YouTubeQuotes() {
         </div>
       )}
 
-      {showSelection && quotes[currentQuoteIndex] && (
-        <div className="mt-6 text-center">
-          <div className="text-2xl font-bold mb-8 p-6 bg-gray-100 rounded">
-            {formatText(quotes[currentQuoteIndex])}
-          </div>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => handleQuoteSelection(false)}
-              className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600"
-            >
-              Skip
-            </button>
-            <button
-              onClick={() => handleQuoteSelection(true)}
-              className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600"
-            >
-              Keep
-            </button>
+      {showSelection && quotes.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-4">Select Quotes</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quotes.map((quote, index) => (
+              <div key={index} className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+                <p className="text-gray-800 mb-3">{formatText(quote)}</p>
+                <button
+                  onClick={() => setSelectedQuotes(prev => 
+                    prev.includes(quote) 
+                      ? prev.filter(q => q !== quote)
+                      : [...prev, quote]
+                  )}
+                  className={`w-full py-2 rounded ${
+                    selectedQuotes.includes(quote)
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  {selectedQuotes.includes(quote) ? 'Selected' : 'Select'}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

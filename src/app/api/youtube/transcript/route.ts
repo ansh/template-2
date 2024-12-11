@@ -9,29 +9,20 @@ function getVideoId(url: string) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
-function chunkText(text: string, maxLength: number = 2000): string[] {
-  const sentences = text.split(/[.!?]+/);
-  const chunks: string[] = [];
-  let currentChunk = '';
-
-  for (const sentence of sentences) {
-    if ((currentChunk + sentence).length > maxLength) {
-      if (currentChunk) chunks.push(currentChunk.trim());
-      currentChunk = sentence;
-    } else {
-      currentChunk += sentence + '. ';
-    }
-  }
-  
-  if (currentChunk) chunks.push(currentChunk.trim());
-  return chunks;
-}
-
-function extractQuotes(text: string, minLength: number = 50): string[] {
+function extractMeaningfulQuotes(text: string): string[] {
+  // Split into sentences
   const sentences = text.split(/[.!?]+/).map(s => s.trim());
-  return sentences
-    .filter(s => s.length >= minLength && s.length <= 200)
-    .slice(0, 20); // Get top 20 quotes
+  
+  // Filter for meaningful quotes (length between 50-200 chars, no timestamps)
+  const meaningfulQuotes = sentences.filter(sentence => {
+    return sentence.length >= 50 && 
+           sentence.length <= 200 && 
+           !/^\d+:\d+/.test(sentence) &&
+           !/^\[.*\]/.test(sentence);
+  });
+
+  // Get top 10 quotes
+  return meaningfulQuotes.slice(0, 10);
 }
 
 export async function POST(req: Request) {
@@ -43,29 +34,25 @@ export async function POST(req: Request) {
 
     const videoId = getVideoId(videoUrl);
     if (!videoId) {
-      return NextResponse.json({ error: "Invalid YouTube URL - Could not extract video ID" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
     }
     
     const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
     if (!transcript || transcript.length === 0) {
-      return NextResponse.json({ error: "No transcript available for this video" }, { status: 404 });
+      return NextResponse.json({ error: "No transcript available" }, { status: 404 });
     }
     
     const fullText = transcript.map(t => t.text).join(' ');
+    const quotes = extractMeaningfulQuotes(fullText);
     
     // Get video metadata
     const apiKey = process.env.GOOGLE_CONSOLE_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "YouTube API key is not configured" }, { status: 500 });
+      return NextResponse.json({ error: "YouTube API key not configured" }, { status: 500 });
     }
 
     const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
-    const response = await axios.get(apiUrl).catch(err => {
-      if (err.response?.status === 403) {
-        throw new Error("Invalid or unauthorized YouTube API key");
-      }
-      throw err;
-    });
+    const response = await axios.get(apiUrl);
     
     const videoData = response.data.items[0].snippet;
     const metadata = {
@@ -74,13 +61,8 @@ export async function POST(req: Request) {
       thumbnail: videoData.thumbnails.high.url
     };
 
-    // Chunk the text and extract quotes from each chunk
-    const chunks = chunkText(fullText);
-    const allQuotes = chunks.flatMap(chunk => extractQuotes(chunk));
-    const uniqueQuotes = [...new Set(allQuotes)];
-    
     return NextResponse.json({
-      quotes: uniqueQuotes.join('\n'),
+      quotes,
       fullText,
       metadata
     });

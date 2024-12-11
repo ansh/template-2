@@ -40,10 +40,10 @@ export default function YouTubeQuotes() {
       const data = await response.json();
       if (data.error) {
         console.error('Error:', data.error);
+        alert(data.error);
         return;
       }
-      const quotesArray = data.quotes?.split('\n').filter((q: string) => q.trim()) || [];
-      setQuotes(quotesArray);
+      setQuotes(data.quotes || []);
       setFullTranscript(data.fullText || '');
       if (data.metadata) {
         setMetadata(data.metadata);

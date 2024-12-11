@@ -13,16 +13,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
     }
 
-    const videoId = videoUrl.split('v=')[1];
+    const videoId = (() => {
+      const urlParams = new URL(videoUrl).searchParams;
+      return urlParams.get('v');
+    })();
+
     if (!videoId) {
-      return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid YouTube URL - Could not extract video ID" }, { status: 400 });
     }
     
-    // Get transcript
-    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl).catch(err => {
-      console.error("Transcript error:", err);
-      throw new Error("Failed to fetch video transcript");
-    });
+    try {
+      // Get transcript
+      const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
+      if (!transcript || transcript.length === 0) {
+        return NextResponse.json({ error: "No transcript available for this video" }, { status: 404 });
+      }
     const fullText = transcript.map(t => t.text).join(' ');
     
     // Get video metadata
@@ -53,8 +58,9 @@ export async function POST(req: Request) {
     const quotes = aiResponse.choices[0].message.content;
     
     return NextResponse.json({ quotes, fullText, metadata });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error processing video:", error);
-    return NextResponse.json({ error: "Failed to process video" }, { status: 500 });
+    const errorMessage = error.message || "Failed to process video";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

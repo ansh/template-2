@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -29,28 +28,39 @@ export default function YouTubeQuotes() {
     setLoading(true);
     setSelectedQuotes([]);
     setCurrentQuoteIndex(0);
-    
+    setShowSelection(false);
+
     try {
       const response = await fetch('/api/youtube/transcript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoUrl })
       });
-      
+
       const data = await response.json();
+      console.log('API Response:', data);
+
       if (data.error) {
         console.error('Error:', data.error);
         alert(data.error);
         return;
       }
-      setQuotes(data.quotes || []);
-      setFullTranscript(data.fullText || '');
-      if (data.metadata) {
-        setMetadata(data.metadata);
+
+      console.log('Full Transcript:', data.fullText);
+      console.log('Extracted Quotes:', data.quotes);
+
+      if (data.quotes && data.quotes.length > 0) {
+        setQuotes(data.quotes);
+        setFullTranscript(data.fullText || '');
+        if (data.metadata) {
+          setMetadata(data.metadata);
+        }
+        setShowSelection(true);
+      } else {
+        alert('No quotes were extracted. This could be because:\n1. The transcript format is unusual\n2. The sentences are too short\n3. There might be an issue with the transcript\n\nPlease try another video or contact support if this persists.');
       }
-      setShowSelection(true);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Fetch Error:', error);
       alert('Failed to process video. Please make sure the URL is correct and the video has subtitles enabled.');
     } finally {
       setLoading(false);
@@ -58,19 +68,24 @@ export default function YouTubeQuotes() {
   };
 
   const handleQuoteSelection = (accepted: boolean) => {
-    if (accepted) {
-      setSelectedQuotes([...selectedQuotes, quotes[currentQuoteIndex]]);
+    if (accepted && quotes[currentQuoteIndex]) {
+      setSelectedQuotes(prev => [...prev, quotes[currentQuoteIndex]]);
     }
-    if (currentQuoteIndex < quotes.length - 1) {
-      setCurrentQuoteIndex(currentQuoteIndex + 1);
+
+    const nextIndex = currentQuoteIndex + 1;
+    if (nextIndex < quotes.length) {
+      setCurrentQuoteIndex(nextIndex);
     } else {
       setShowSelection(false);
+      if (selectedQuotes.length === 0) {
+        alert('No quotes were selected. You can try processing the video again to see different quotes.');
+      }
     }
   };
 
   const exportAsPNG = async () => {
     if (!exportRef.current) return;
-    
+
     const canvas = await html2canvas(exportRef.current, {
       scale: 3, // Increase quality
       logging: false,
@@ -87,7 +102,7 @@ export default function YouTubeQuotes() {
   return (
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">YouTube Quote Extractor</h1>
-      
+
       <form onSubmit={handleSubmit} className="mb-6">
         <input
           type="text"
@@ -117,8 +132,8 @@ export default function YouTubeQuotes() {
       {metadata && (
         <div className="mt-6 mb-6 text-center">
           <h2 className="text-xl font-bold mb-4">{metadata.title}</h2>
-          <img 
-            src={metadata.thumbnail} 
+          <img
+            src={metadata.thumbnail}
             alt={metadata.title}
             className="mx-auto rounded-lg shadow-lg max-w-full h-auto"
           />
@@ -153,25 +168,26 @@ export default function YouTubeQuotes() {
       {selectedQuotes.length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Selected Quotes</h2>
-          <div ref={exportRef} className="bg-white p-8 rounded-lg shadow-lg max-w-2xl">
+          <div ref={exportRef} className="bg-white p-6 rounded-lg shadow-lg max-w-2xl flex flex-col">
             {metadata && (
-              <div className="mb-8 text-center">
-                <img 
-                  src={metadata.thumbnail} 
+              <div className="w-full mb-6 flex-shrink-0">
+                <img
+                  src={metadata.thumbnail}
                   alt={metadata.title}
-                  className="mx-auto rounded-lg shadow-md mb-4 max-w-full h-auto"
+                  className="w-full h-auto object-cover rounded-lg shadow-sm mb-3"
+                  crossOrigin="anonymous"
                 />
-                <h2 className="text-xl font-bold text-gray-800">{metadata.title}</h2>
-                <p className="text-sm text-gray-600 mt-1">{metadata.channelTitle}</p>
+                <h2 className="text-lg font-bold text-gray-800">{metadata.title}</h2>
+                <p className="text-sm text-gray-600">{metadata.channelTitle}</p>
               </div>
             )}
-            {selectedQuotes.map((quote, index) => (
-              <div key={index} className="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-gray-800 text-sm leading-relaxed font-light tracking-wide">
+            <div className="space-y-2">
+              {selectedQuotes.map((quote, index) => (
+                <div key={index} className="text-gray-800 text-sm">
                   {formatText(quote)}
-                </p>
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
           <button
             onClick={exportAsPNG}

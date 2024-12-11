@@ -1,0 +1,64 @@
+To retrieve the thumbnail and title of a YouTube video along with the transcript, you can use a combination of the youtube-transcript package and the YouTube Data API. Here's how you can do it:
+
+## Fetching Thumbnail and Title
+
+To get the thumbnail and title, you'll need to use the YouTube Data API. Here's a step-by-step guide:
+
+1. **Get an API Key**: 
+   - Go to the Google Developers Console and create a project.
+   - Enable the YouTube Data API for your project.
+   - Create credentials to get an API key.
+
+2. **Install Required Packages**:
+   ```bash
+   npm install youtube-transcript axios
+   ```
+
+3. **Fetch Thumbnail, Title, and Transcript**:
+
+```javascript
+import { YoutubeTranscript } from 'youtube-transcript';
+import axios from 'axios';
+
+async function getVideoInfo(videoUrl) {
+    try {
+        // Extract video ID from URL
+        const videoId = videoUrl.split('v=')[1];
+        
+        // Fetch transcript
+        const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
+        
+        // Fetch video details
+        const apiKey = 'YOUR_API_KEY_HERE';
+        const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
+        const response = await axios.get(apiUrl);
+        
+        const videoData = response.data.items[0].snippet;
+        const title = videoData.title;
+        const thumbnail = videoData.thumbnails.high.url; // You can choose different sizes
+
+        return { title, thumbnail, transcript };
+    } catch (error) {
+        console.error("Error fetching video info:", error);
+    }
+}
+
+// Example usage
+getVideoInfo('https://www.youtube.com/watch?v=YOUR_VIDEO_ID')
+    .then(info => console.log(info));
+```
+
+## Important Notes
+
+- **API Key Security**: Keep your API key secret. In a production environment, store it securely (e.g., environment variables).
+- **Rate Limits**: The YouTube Data API has usage quotas. Monitor your usage to avoid exceeding limits.
+- **Error Handling**: Implement robust error handling for both API requests and transcript fetching.
+- **Thumbnail Options**: The API provides various thumbnail sizes. Choose the one that best fits your needs (e.g., default, medium, high, standard, maxres).
+
+By combining the youtube-transcript package for transcripts and the YouTube Data API for video details, you can efficiently retrieve the title, thumbnail, and transcript of YouTube videos in your Next.js project[1][4].
+
+Citations:
+[1] https://sentry.io/answers/how-do-i-get-a-youtube-video-thumbnail-from-the-youtube-api/
+[2] https://stackoverflow.com/questions/2068344/how-do-i-get-a-youtube-video-thumbnail-from-the-youtube-api/20542029
+[3] https://community.kodular.io/t/how-to-get-the-youtube-video-title-and-thumbnail-by-the-video-id/59938
+[4] https://developers.google.com/youtube/v3/docs/videos?csw=1

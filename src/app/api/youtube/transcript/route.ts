@@ -22,12 +22,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid YouTube URL - Could not extract video ID" }, { status: 400 });
     }
     
-    try {
-      // Get transcript
-      const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
-      if (!transcript || transcript.length === 0) {
-        return NextResponse.json({ error: "No transcript available for this video" }, { status: 404 });
-      }
+    // Get transcript
+    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
+    if (!transcript || transcript.length === 0) {
+      return NextResponse.json({ error: "No transcript available for this video" }, { status: 404 });
+    }
+    
     const fullText = transcript.map(t => t.text).join(' ');
     
     // Get video metadata

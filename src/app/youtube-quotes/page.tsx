@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 
 export default function YouTubeQuotes() {
   const [videoUrl, setVideoUrl] = useState('');
+  const [metadata, setMetadata] = useState(null);
   const [quotes, setQuotes] = useState<string[]>([]);
   const [selectedQuotes, setSelectedQuotes] = useState<string[]>([]);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -45,8 +46,7 @@ export default function YouTubeQuotes() {
       setQuotes(quotesArray);
       setFullTranscript(data.fullText || '');
       if (data.metadata) {
-        console.log('Video metadata:', data.metadata);
-        // Handle metadata if needed
+        setMetadata(data.metadata);
       }
       setShowSelection(true);
     } catch (error) {
@@ -99,6 +99,24 @@ export default function YouTubeQuotes() {
           {loading ? 'Processing...' : 'Extract Quotes'}
         </button>
       </form>
+
+      {loading && (
+        <div className="text-center mt-4">
+          <div className="animate-pulse">Loading...</div>
+        </div>
+      )}
+
+      {metadata && (
+        <div className="mt-6 mb-6 text-center">
+          <h2 className="text-xl font-bold mb-4">{metadata.title}</h2>
+          <img 
+            src={metadata.thumbnail} 
+            alt={metadata.title}
+            className="mx-auto rounded-lg shadow-lg max-w-full h-auto"
+          />
+          <p className="mt-2 text-gray-600">{metadata.channelTitle}</p>
+        </div>
+      )}
 
       {showSelection && quotes[currentQuoteIndex] && (
         <div className="mt-6 text-center">

@@ -9,10 +9,20 @@ const openai = new OpenAI();
 export async function POST(req: Request) {
   try {
     const { videoUrl } = await req.json();
+    if (!videoUrl) {
+      return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
+    }
+
     const videoId = videoUrl.split('v=')[1];
+    if (!videoId) {
+      return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
+    }
     
     // Get transcript
-    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl);
+    const transcript = await YoutubeTranscript.fetchTranscript(videoUrl).catch(err => {
+      console.error("Transcript error:", err);
+      throw new Error("Failed to fetch video transcript");
+    });
     const fullText = transcript.map(t => t.text).join(' ');
     
     // Get video metadata

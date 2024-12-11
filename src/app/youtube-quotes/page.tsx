@@ -51,6 +51,7 @@ export default function YouTubeQuotes() {
       setShowSelection(true);
     } catch (error) {
       console.error('Error:', error);
+      alert('Failed to process video. Please make sure the URL is correct and the video has subtitles enabled.');
     } finally {
       setLoading(false);
     }

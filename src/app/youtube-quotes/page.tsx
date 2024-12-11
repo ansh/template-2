@@ -9,6 +9,15 @@ export default function YouTubeQuotes() {
   const [fullTranscript, setFullTranscript] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
+  const formatText = (text: string) => {
+    return text
+      .replace(/&amp;#39;/g, "'")
+      .replace(/&amp;quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -82,7 +91,7 @@ export default function YouTubeQuotes() {
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Full Transcript</h2>
           <div className="bg-gray-100 p-4 rounded whitespace-pre-line">
-            {fullTranscript}
+            {formatText(fullTranscript)}
           </div>
         </div>
       )}

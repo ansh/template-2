@@ -32,8 +32,17 @@ export async function POST(req: Request) {
     
     // Get video metadata
     const apiKey = process.env.GOOGLE_CONSOLE_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "YouTube API key is not configured" }, { status: 500 });
+    }
+
     const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
-    const response = await axios.get(apiUrl);
+    const response = await axios.get(apiUrl).catch(err => {
+      if (err.response?.status === 403) {
+        throw new Error("Invalid or unauthorized YouTube API key");
+      }
+      throw err;
+    });
     
     const videoData = response.data.items[0].snippet;
     const metadata = {

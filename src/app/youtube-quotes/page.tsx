@@ -1,13 +1,18 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import html2canvas from 'html2canvas';
 
 export default function YouTubeQuotes() {
   const [videoUrl, setVideoUrl] = useState('');
-  const [quotes, setQuotes] = useState<string>('');
+  const [quotes, setQuotes] = useState<string[]>([]);
+  const [selectedQuotes, setSelectedQuotes] = useState<string[]>([]);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [fullTranscript, setFullTranscript] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [showSelection, setShowSelection] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
     return text
@@ -21,6 +26,8 @@ export default function YouTubeQuotes() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSelectedQuotes([]);
+    setCurrentQuoteIndex(0);
     
     try {
       const response = await fetch('/api/youtube/transcript', {
@@ -30,8 +37,10 @@ export default function YouTubeQuotes() {
       });
       
       const data = await response.json();
-      setQuotes(data.quotes);
+      const quotesArray = data.quotes.split('\n').filter((q: string) => q.trim());
+      setQuotes(quotesArray);
       setFullTranscript(data.fullText);
+      setShowSelection(true);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -39,16 +48,26 @@ export default function YouTubeQuotes() {
     }
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([quotes], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'youtube-quotes.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+  const handleQuoteSelection = (accepted: boolean) => {
+    if (accepted) {
+      setSelectedQuotes([...selectedQuotes, quotes[currentQuoteIndex]]);
+    }
+    if (currentQuoteIndex < quotes.length - 1) {
+      setCurrentQuoteIndex(currentQuoteIndex + 1);
+    } else {
+      setShowSelection(false);
+    }
+  };
+
+  const exportAsPNG = async () => {
+    if (!exportRef.current) return;
+    
+    const canvas = await html2canvas(exportRef.current);
+    const image = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = 'youtube-quotes.png';
+    link.click();
   };
 
   return (
@@ -73,16 +92,43 @@ export default function YouTubeQuotes() {
         </button>
       </form>
 
-      {quotes && (
-        <div className="mt-6">
-          <div className="bg-gray-100 p-4 rounded whitespace-pre-line mb-4">
-            {quotes}
+      {showSelection && quotes[currentQuoteIndex] && (
+        <div className="mt-6 text-center">
+          <div className="text-2xl font-bold mb-8 p-6 bg-gray-100 rounded">
+            {formatText(quotes[currentQuoteIndex])}
+          </div>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => handleQuoteSelection(false)}
+              className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600"
+            >
+              Skip
+            </button>
+            <button
+              onClick={() => handleQuoteSelection(true)}
+              className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600"
+            >
+              Keep
+            </button>
+          </div>
+        </div>
+      )}
+
+      {selectedQuotes.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Selected Quotes</h2>
+          <div ref={exportRef} className="bg-white p-6 rounded-lg shadow-lg">
+            {selectedQuotes.map((quote, index) => (
+              <div key={index} className="mb-4 p-4 bg-gray-100 rounded">
+                {formatText(quote)}
+              </div>
+            ))}
           </div>
           <button
-            onClick={handleDownload}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            onClick={exportAsPNG}
+            className="mt-4 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
           >
-            Download Quotes
+            Export as PNG
           </button>
         </div>
       )}

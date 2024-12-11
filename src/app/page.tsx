@@ -42,12 +42,12 @@ export default function Home() {
             Firebase integration for storage, and a clean, simple interface built with Next.js.
           </p>
         </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
+        <Link href="/youtube-quotes" className="border rounded-lg p-6 hover:bg-gray-100 transition-colors block">
           <h3 className="text-xl font-semibold">YouTube Quote Extractor</h3>
           <p className="mt-2 text-sm text-gray-600">
             Extract and save meaningful quotes from YouTube videos using AI-powered analysis.
           </p>
-        </div>
+        </Link>
       </div>
     </main>
   );

@@ -1,0 +1,62 @@
+~/workspace$ git log --oneline
+3f3d84c (HEAD -> main) Assistant checkpoint: Simplified content generation to intro and body only
+636d2bf Assistant checkpoint: Updated Gemini prompts with storytelling example
+23bbfc5 Assistant checkpoint: Update content generation to include bodies and show history
+d58565b Assistant checkpoint: Implement turn-based content generation system
+c450f95 Restored to '8eb49dd764baa0cc07d079988cf32ca8f18a8f46'
+0260a74 Assistant checkpoint: Update Gemini integration with 6 fields and first-person prompt
+8eb49dd Assistant checkpoint: Add Gemini API integration for long-form content generation
+9c37160 Assistant checkpoint: Add content generation button and functionality
+bbdecbf Assistant checkpoint: Updated goal analysis and prompts
+05bee6b Assistant checkpoint
+b6e112c Assistant checkpoint: Fix thread analysis with proper OpenAI integration
+70b8dba good
+2b0014f Assistant checkpoint: Fix API route and install missing dependencies
+bdaf3d2 Assistant checkpoint: Fix quote extraction and display
+e960055 Assistant checkpoint: Fix quote extraction and selection interface
+62aac36 Assistant checkpoint: Add visible loading indicator for quote extraction
+96e22f3 Assistant checkpoint: Restore quote-by-quote selection interface
+be09d28 Assistant checkpoint: Add transcript dropdown and copy button
+ff59d1c Assistant checkpoint: Add card-based quote selection interface
+99306b7 Assistant checkpoint: Implement chunking and increase quote extraction
+a95fc6a Assistant checkpoint: Add video thumbnail and title to exported image
+ca84afe Assistant checkpoint: Improve image export quality and quote styling
+5b42736 Assistant checkpoint: Add API key validation and error handling
+6ba461b Assistant checkpoint: Fix syntax and structure in YouTube transcript route
+4c15f52 Assistant checkpoint: Improve error handling in YouTube transcript processing
+f764a35 Assistant checkpoint: Improve error handling for video processing
+b7bd05e Assistant checkpoint: Added video metadata display and fixed error handling
+21c8e49 Assistant checkpoint: Update handleSubmit and install html2canvas
+0b7e0e7 Assistant checkpoint: Added YouTube metadata fetching with API integration
+7dbc16d Assistant checkpoint: Add quote selection interface with PNG export
+1b81f9b Assistant checkpoint: Add text formatting for better readability
+f86217a Assistant checkpoint: Added full transcript display below quotes
+d99cf40 Assistant checkpoint: Fix configuration and dependencies
+7156385 Assistant checkpoint: Add navigation link to YouTube Quotes page
+314b0d7 Assistant checkpoint: Create YouTube quote extraction app with download feature
+1604c21 (origin/main, origin/HEAD) make sign in simpler
+51dfbb2 add rules
+b76c867 remove useless utils
+9faf9cc reset template
+575a4bb reset template
+c85e538 Merge branch 'main' of https://github.com/ansh/template-2
+69d3820 organize template better & add .cursorrules
+3707df7 Add a all notes button and make text look better
+9d50d71 Created a voice recording app with perplexity-like UI
+0f40527 fix deepgramcontext
+6c863e6 add openai whisper
+8d6f434 fix deepgram stuff
+255640c replace package-lock.json to bun
+24003fd create deepgram & microphone helpers for the template
+2cfcc1d Update readme
+1450022 replace bun with npm
+110d006 make sign in with google button look better
+eac535b fix openai and anthropic endpoints
+dfe7fa8 add image upload component and remove other components
+aef4f65 delete existing pages
+60392e0 add template paths
+0db9f1b social media app done
+f3a7ba3 generate image
+e1b0024 ai chat
+efafcfb (grafted) add ai chatbot
+~/workspace$ 

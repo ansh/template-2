@@ -1,53 +1,91 @@
+'use client';
+
 import Link from "next/link";
+import Image from "next/image";
+import PodcastPlayer from './components/PodcastPlayer';
+import { useState } from 'react';
 
 export default function Home() {
+  const [url, setUrl] = useState('');
+  const [quotes, setQuotes] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [metadata, setMetadata] = useState<any>(null);
+  const [podcastData, setPodcastData] = useState<{
+    audioUrl: string;
+    summary: string;
+    status: string;
+  } | null>(null);
+  const [processingStatus, setProcessingStatus] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setQuotes([]);
+    setPodcastData(null);
+    setProcessingStatus('Processing video URL...');
+
+    try {
+      const response = await fetch('/api/youtube/transcript', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl: url,
+          generatePodcastAudio: true
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process video');
+      }
+
+      setQuotes(data.quotes || []);
+      setMetadata(data.metadata);
+      setPodcastData(data.podcastData);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+      setProcessingStatus('');
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8">
-      <div>
-        <h2 className="text-2xl font-semibold text-center border p-4 font-mono rounded-md">
-          Get started by choosing a template path from the /paths/ folder.
-        </h2>
+    <main className="min-h-screen p-8">
+      <div className="absolute top-4 right-4">
+        <Image
+          src="/yaplogonobg.png"
+          alt="YapThread Logo"
+          width={150}
+          height={150}
+          priority
+        />
       </div>
-      <div>
-        <h1 className="text-6xl font-bold text-center">Make anything you imagine 🪄</h1>
-        <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
-          This whole page will be replaced when you run your template path.
-        </h2>
-      </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">AI Chat App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            An intelligent conversational app powered by AI models, featuring real-time responses
-            and seamless integration with Next.js and various AI providers.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">AI Image Generation App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            Create images from text prompts using AI, powered by the Replicate API and Next.js.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">Social Media App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            A feature-rich social platform with user profiles, posts, and interactions using
-            Firebase and Next.js.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">Voice Notes App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            A voice-based note-taking app with real-time transcription using Deepgram API, 
-            Firebase integration for storage, and a clean, simple interface built with Next.js.
-          </p>
-        </div>
-        <Link href="/youtube-quotes" className="border rounded-lg p-6 hover:bg-gray-100 transition-colors block">
-          <h3 className="text-xl font-semibold">YouTube Quote Extractor</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            Extract and save meaningful quotes from YouTube videos using AI-powered analysis.
-          </p>
-        </Link>
+
+      <h1 className="text-6xl font-bold text-center mt-20 mb-12">
+        YapThread Playground
+      </h1>
+
+      <Link
+        href="/youtube-quotes"
+        className="text-xl bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+      >
+        YouTube Yap Extractor
+      </Link>
+
+      <div className="mt-8">
+        <PodcastPlayer
+          audioUrl={podcastData?.audioUrl || null}
+          summary={podcastData?.summary || null}
+          isLoading={isLoading}
+          status={processingStatus}
+        />
       </div>
     </main>
   );

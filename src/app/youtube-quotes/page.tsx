@@ -206,6 +206,38 @@ export default function YouTubeQuotes() {
           </div>
         )}
 
+        {quotes.length > 0 && !loading && (
+          <div className="flex flex-wrap gap-4 mb-8 justify-center items-center">
+            <button
+              onClick={generatePodcast}
+              disabled={generatingPodcast}
+              className="px-4 py-2 text-sm bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors disabled:opacity-50"
+            >
+              {generatingPodcast ? 'Generating...' : 'Generate Podcast'}
+            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={copyTranscript}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Copy Transcript
+              </button>
+              <button
+                onClick={copyFormattedTranscript}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Copy Speaker Format
+              </button>
+              <button
+                onClick={() => setShowTranscript(!showTranscript)}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                {showTranscript ? 'Hide Transcript' : 'View Transcript'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {title && thumbnail && !loading && (
           <div className="mb-8 text-center">
             <img src={thumbnail} alt={title} className="w-full max-w-lg mx-auto rounded-lg shadow-sm" />

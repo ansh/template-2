@@ -172,6 +172,13 @@ export default function YouTubeQuotes() {
           <p className="text-gray-600">In search of meaning in YouTube content</p>
         </div>
 
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-100 mx-auto mb-4"></div>
+            <p className="text-gray-600">Processing video...</p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mb-8">
           <div className="relative bg-white rounded-lg shadow-sm">
             <input
@@ -196,6 +203,13 @@ export default function YouTubeQuotes() {
         {error && (
           <div className="text-center mt-8 text-red-500">
             {error}
+          </div>
+        )}
+
+        {title && thumbnail && !loading && (
+          <div className="mb-8 text-center">
+            <img src={thumbnail} alt={title} className="w-full max-w-lg mx-auto rounded-lg shadow-sm" />
+            <h2 className="mt-4 text-xl font-serif text-gray-800">{title}</h2>
           </div>
         )}
 
@@ -286,9 +300,16 @@ export default function YouTubeQuotes() {
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-8 justify-center">
-          {quotes.length > 0 && (
-            <>
+        {quotes.length > 0 && !loading && (
+          <div className="flex flex-wrap gap-4 mb-8 justify-center items-center">
+            <button
+              onClick={generatePodcast}
+              disabled={generatingPodcast}
+              className="px-4 py-2 text-sm bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors disabled:opacity-50"
+            >
+              {generatingPodcast ? 'Generating...' : 'Generate Podcast'}
+            </button>
+            <div className="flex gap-4">
               <button
                 onClick={copyTranscript}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
@@ -302,21 +323,14 @@ export default function YouTubeQuotes() {
                 Copy Speaker Format
               </button>
               <button
-                onClick={generatePodcast}
-                disabled={generatingPodcast}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
-              >
-                {generatingPodcast ? 'Generating...' : 'Generate Podcast'}
-              </button>
-              <button
                 onClick={() => setShowTranscript(!showTranscript)}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
               >
                 {showTranscript ? 'Hide Transcript' : 'View Transcript'}
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         {showTranscript && (
           <div className="mt-8 space-y-8">

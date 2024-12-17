@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -22,6 +23,7 @@ export default function YouTubeQuotes() {
   const [showTranscript, setShowTranscript] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
+  // ... keep all the existing handler functions unchanged ...
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -118,10 +120,6 @@ export default function YouTubeQuotes() {
     }
   };
 
-  const copyTranscript = () => {
-    navigator.clipboard.writeText(fullTranscript);
-  };
-
   const generatePodcast = async () => {
     try {
       setGeneratingPodcast(true);
@@ -146,10 +144,6 @@ export default function YouTubeQuotes() {
 
       if (data.podcastData?.audioUrl) {
         setPodcastUrl(data.podcastData.audioUrl);
-      } else if (data.podcastData?.id) {
-        // If we only get an ID, we need to poll for the audio URL
-        setError('Podcast is being generated. Please wait...');
-        // You might want to implement polling here
       } else {
         setError('Failed to get podcast URL. Please try again.');
       }
@@ -161,115 +155,47 @@ export default function YouTubeQuotes() {
     }
   };
 
+  const copyTranscript = () => {
+    navigator.clipboard.writeText(fullTranscript);
+  };
+
   const copyFormattedTranscript = () => {
     navigator.clipboard.writeText(formattedTranscript);
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-xl mx-auto pt-20 px-4">
-        <h1 className="text-2xl font-bold text-center mb-8">YouTube Quote Extractor</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto pt-20 px-4">
+        <div className="text-center mb-12">
+          <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-4">What's new</span>
+          <h1 className="text-4xl font-serif mb-2">YapQuotes</h1>
+          <p className="text-gray-600">In search of meaning in YouTube content</p>
+        </div>
 
-        <div className="relative">
-          <form onSubmit={handleSubmit} className="mb-4">
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="relative bg-white rounded-lg shadow-sm">
             <input
               type="text"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="Enter YouTube URL"
-              className="w-full p-3 bg-gray-50 mb-2 focus:outline-none"
+              className="w-full p-4 pr-12 bg-transparent focus:outline-none"
               required
               disabled={loading}
             />
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-[#4285f4] text-white px-4 py-2 disabled:opacity-50"
-              >
-                {loading ? 'Processing...' : 'Extract Quotes'}
-              </button>
-              {quotes.length > 0 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={copyTranscript}
-                    className="bg-gray-500 text-white px-4 py-2 hover:bg-gray-600 transition-colors"
-                  >
-                    Copy Transcript
-                  </button>
-                  <button
-                    type="button"
-                    onClick={copyFormattedTranscript}
-                    className="bg-gray-500 text-white px-4 py-2 hover:bg-gray-600 transition-colors"
-                  >
-                    Copy Speaker Format
-                  </button>
-                  <button
-                    type="button"
-                    onClick={generatePodcast}
-                    disabled={generatingPodcast}
-                    className="bg-purple-500 text-white px-4 py-2 hover:bg-purple-600 transition-colors disabled:opacity-50"
-                  >
-                    {generatingPodcast ? 'Generating...' : 'Generate Podcast'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowTranscript(!showTranscript)}
-                    className="bg-gray-500 text-white px-4 py-2 hover:bg-gray-600 transition-colors"
-                  >
-                    {showTranscript ? 'Hide Transcript' : 'View Transcript'}
-                  </button>
-                </>
-              )}
-            </div>
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-full h-1 bg-gray-100 overflow-hidden">
-                  <div className="w-1/3 h-full bg-[#4285f4] animate-[loading_1s_ease-in-out_infinite]"></div>
-                </div>
-              </div>
-            )}
-          </form>
-        </div>
-
-        {loading && (
-          <div className="text-center mt-8">
-            <div className="text-gray-600">Extracting quotes from video...</div>
-            <div className="text-sm text-gray-500">This may take a few moments</div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              →
+            </button>
           </div>
-        )}
+        </form>
 
         {error && (
           <div className="text-center mt-8 text-red-500">
             {error}
-          </div>
-        )}
-
-        {showTranscript && (
-          <div className="mt-8 space-y-8">
-            {formattedTranscript && (
-              <div className="p-4 bg-gray-50">
-                <h2 className="text-xl font-bold mb-4">Speaker Format Transcript</h2>
-                <div className="whitespace-pre-wrap text-sm font-mono">{formattedTranscript}</div>
-              </div>
-            )}
-            {fullTranscript && (
-              <div className="p-4 bg-gray-50">
-                <h2 className="text-xl font-bold mb-4">Full Transcript</h2>
-                <div className="whitespace-pre-wrap text-sm">{fullTranscript}</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {podcastUrl && (
-          <div className="mt-8 p-4 bg-gray-50">
-            <h2 className="text-xl font-bold mb-4">Generated Podcast</h2>
-            <audio controls className="w-full">
-              <source src={podcastUrl} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
           </div>
         )}
 
@@ -282,26 +208,26 @@ export default function YouTubeQuotes() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: exitDirection === 'left' ? -300 : 300, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="bg-white shadow-lg rounded-lg p-6"
+                className="bg-white rounded-lg shadow-sm p-6"
               >
-                <div className="text-lg">{quotes[currentIndex]}</div>
+                <div className="text-lg font-serif">{quotes[currentIndex]}</div>
                 <div className="flex justify-center gap-4 mt-6">
                   <button
                     onClick={handleSkip}
-                    className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors"
+                    className="px-6 py-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
                   >
                     Skip
                   </button>
                   <button
                     onClick={handleKeep}
-                    className="bg-green-500 text-white px-8 py-3 rounded-full hover:bg-green-600 transition-colors"
+                    className="px-6 py-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
                   >
                     Keep
                   </button>
                 </div>
               </motion.div>
             </AnimatePresence>
-            <div className="text-center mt-4 text-gray-500">
+            <div className="text-center mt-4 text-gray-500 text-sm">
               {currentIndex + 1} of {quotes.length} quotes
             </div>
           </div>
@@ -310,69 +236,44 @@ export default function YouTubeQuotes() {
         {savedQuotes.length > 0 && (
           <div className="mt-12">
             <details className="group">
-              <summary className="flex items-center justify-between cursor-pointer list-none">
+              <summary className="flex items-center justify-between cursor-pointer list-none p-4 bg-white rounded-lg shadow-sm">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold">Saved Quotes</h2>
-                  <span className="bg-gray-100 px-2 py-1 rounded-full text-sm">
+                  <h2 className="text-lg font-serif">Saved Quotes</h2>
+                  <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
                     {savedQuotes.length}
                   </span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      exportAsPNG();
-                    }}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm"
-                  >
-                    Quick Export
-                  </button>
-                  <svg
-                    className="w-5 h-5 transform transition-transform group-open:rotate-180"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    exportAsPNG();
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Export
+                </button>
               </summary>
 
               <div className="mt-4">
-                <div ref={exportRef} className="bg-white p-8 relative">
-                  {/* Logo and Title */}
-                  <div className="flex justify-between items-start mb-8">
-                    <h2 className="text-xl font-bold text-gray-800">YapThread Summary</h2>
-                    <Image
-                      src="/yaplogonobg.png"
-                      alt="YapThread Logo"
-                      width={100}
-                      height={100}
-                      className="object-contain"
-                    />
-                  </div>
-
-                  {/* Video Thumbnail and Title */}
+                <div ref={exportRef} className="bg-white p-8 rounded-lg shadow-sm space-y-4">
                   {thumbnail && (
                     <div className="mb-8">
                       <img
                         src={thumbnail}
                         alt={title}
-                        className="w-full h-auto object-cover"
+                        className="w-full h-auto rounded-lg"
                         crossOrigin="anonymous"
                       />
-                      {title && <h2 className="text-lg font-semibold mt-4">{title}</h2>}
+                      {title && <h2 className="text-lg font-serif mt-4">{title}</h2>}
                     </div>
                   )}
-
-                  {/* Quotes */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {savedQuotes.map((quote, index) => (
-                      <div key={index} className="group relative text-sm leading-relaxed">
+                      <div key={index} className="group relative text-gray-800 font-serif leading-relaxed">
                         {quote}
                         <button
                           onClick={() => removeQuote(index)}
-                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-500"
+                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
                         >
                           ×
                         </button>
@@ -380,25 +281,70 @@ export default function YouTubeQuotes() {
                     ))}
                   </div>
                 </div>
-                <button
-                  onClick={exportAsPNG}
-                  className="mt-4 w-full bg-black text-white p-3 hover:bg-gray-800 transition-colors"
-                >
-                  Export as PNG
-                </button>
               </div>
             </details>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mt-8 justify-center">
+          {quotes.length > 0 && (
+            <>
+              <button
+                onClick={copyTranscript}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Copy Transcript
+              </button>
+              <button
+                onClick={copyFormattedTranscript}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Copy Speaker Format
+              </button>
+              <button
+                onClick={generatePodcast}
+                disabled={generatingPodcast}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
+              >
+                {generatingPodcast ? 'Generating...' : 'Generate Podcast'}
+              </button>
+              <button
+                onClick={() => setShowTranscript(!showTranscript)}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                {showTranscript ? 'Hide Transcript' : 'View Transcript'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {showTranscript && (
+          <div className="mt-8 space-y-8">
+            {formattedTranscript && (
+              <div className="p-6 bg-white rounded-lg shadow-sm">
+                <h2 className="text-lg font-serif mb-4">Speaker Format Transcript</h2>
+                <div className="whitespace-pre-wrap text-sm font-mono text-gray-700">{formattedTranscript}</div>
+              </div>
+            )}
+            {fullTranscript && (
+              <div className="p-6 bg-white rounded-lg shadow-sm">
+                <h2 className="text-lg font-serif mb-4">Full Transcript</h2>
+                <div className="whitespace-pre-wrap text-sm text-gray-700">{fullTranscript}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {podcastUrl && (
+          <div className="mt-8 p-6 bg-white rounded-lg shadow-sm">
+            <h2 className="text-lg font-serif mb-4">Generated Podcast</h2>
+            <audio controls className="w-full">
+              <source src={podcastUrl} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-// Add this to your global CSS or use a style tag
-const styles = `
-@keyframes loading {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(400%); }
-}
-`;

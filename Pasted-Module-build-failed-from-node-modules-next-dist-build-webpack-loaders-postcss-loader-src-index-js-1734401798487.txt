@@ -1,0 +1,59 @@
+Module build failed (from ./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js):
+Error: Cannot find module 'autoprefixer'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack-config.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-server.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1145:15)
+    at /home/runner/workspace/node_modules/next/dist/server/require-hook.js:55:36
+    at Function.resolve (node:internal/modules/helpers:190:19)
+    at loadPlugin (/home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:49:32)
+    at /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:157:56
+    at Array.map ()
+    at getPostCssPlugins (/home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:157:47)
+    at async /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/index.js:124:36
+    at async /home/runner/workspace/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js:51:40
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/next/dist/trace/trace.js:154:20)
+[HMR] connected
+./src/app/globals.css.webpack[javascript/auto]!=!./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[3]!./src/app/globals.css
+Error: Cannot find module 'autoprefixer'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack-config.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-server.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js
+    at Array.map (<anonymous>)
+./src/app/globals.css
+Error: Cannot find module 'autoprefixer'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack-config.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-server.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js
+    at Array.map (<anonymous>)
+-- inner error --
+Error: Cannot find module 'autoprefixer'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack/config/index.js
+- /home/runner/workspace/node_modules/next/dist/build/webpack-config.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/router-server.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js
+    at Array.map (<anonymous>)
+Generated code for /home/runner/workspace/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[2]!/home/runner/workspace/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[3]!/home/runner/workspace/src/app/globals.css

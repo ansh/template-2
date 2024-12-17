@@ -1,10 +1,14 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserButton } from '@clerk/nextjs';
+import { SignedIn } from '@clerk/nextjs';
+import { SignInButton } from '@clerk/nextjs';
+import { SignedOut } from '@clerk/nextjs';
+import { db } from '@/lib/contexts/AuthContext';
 
 export default function YouTubeQuotes() {
   const [videoUrl, setVideoUrl] = useState('');
@@ -22,6 +26,8 @@ export default function YouTubeQuotes() {
   const [generatingPodcast, setGeneratingPodcast] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+  const { user } = db.useAuth()
+  console.log("user", user);
 
   // ... keep all the existing handler functions unchanged ...
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,12 +110,21 @@ export default function YouTubeQuotes() {
       const canvas = await html2canvas(exportRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
         allowTaint: true,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          // Update the thumbnail URL to use our proxy
+          if (thumbnail) {
+            const thumbImg = clonedDoc.querySelector('img[alt="' + (title || '') + '"]');
+            if (thumbImg) {
+              const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+              thumbImg.src = proxyUrl;
+            }
+          }
+        }
       });
 
-      const image = canvas.toDataURL('image/png');
+      const image = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       link.href = image;
       link.download = 'youtube-quotes.png';
@@ -165,10 +180,18 @@ export default function YouTubeQuotes() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <header className="flex justify-end p-4">
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+      </header>
       <div className="max-w-2xl mx-auto pt-20 px-4">
         <div className="text-center mb-12">
-          <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-4">What's new</span>
-          <h1 className="text-4xl font-serif mb-2">YapQuotes</h1>
+          <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-4">Learn from YouTube</span>
+          <h1 className="text-4xl font-serif mb-2">Podcast and Quotes Extractor</h1>
           <p className="text-gray-600">In search of meaning in YouTube content</p>
         </div>
 
@@ -240,7 +263,14 @@ export default function YouTubeQuotes() {
 
         {title && thumbnail && !loading && (
           <div className="mb-8 text-center">
-            <img src={thumbnail} alt={title} className="w-full max-w-lg mx-auto rounded-lg shadow-sm" />
+            <Image
+              src={thumbnail}
+              alt={title}
+              width={640}
+              height={360}
+              className="mx-auto rounded-lg shadow-sm"
+              unoptimized
+            />
             <h2 className="mt-4 text-xl font-serif text-gray-800">{title}</h2>
           </div>
         )}
@@ -254,7 +284,7 @@ export default function YouTubeQuotes() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: exitDirection === 'left' ? -300 : 300, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="bg-white rounded-lg shadow-sm p-6"
+                className="bg-white rounded-lg shadow-sm p-6 relative"
               >
                 <div className="text-lg font-serif">{quotes[currentIndex]}</div>
                 <div className="flex justify-center gap-4 mt-6">
@@ -271,11 +301,11 @@ export default function YouTubeQuotes() {
                     Keep
                   </button>
                 </div>
+                <div className="absolute bottom-2 right-4 text-gray-500 text-sm">
+                  {currentIndex + 1} of {quotes.length}
+                </div>
               </motion.div>
             </AnimatePresence>
-            <div className="text-center mt-4 text-gray-500 text-sm">
-              {currentIndex + 1} of {quotes.length} quotes
-            </div>
           </div>
         )}
 
@@ -302,17 +332,36 @@ export default function YouTubeQuotes() {
 
               <div className="mt-4">
                 <div ref={exportRef} className="bg-white p-8 rounded-lg shadow-sm space-y-4">
-                  {thumbnail && (
-                    <div className="mb-8">
+                  <div className="flex flex-col items-center mb-8">
+                    <div className="mb-4" style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <img
-                        src={thumbnail}
-                        alt={title}
-                        className="w-full h-auto rounded-lg"
-                        crossOrigin="anonymous"
+                        src="/yaplogonobg.png"
+                        alt="YAP Logo"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          width: 'auto',
+                          height: 'auto'
+                        }}
                       />
-                      {title && <h2 className="text-lg font-serif mt-4">{title}</h2>}
                     </div>
-                  )}
+
+                    {thumbnail && (
+                      <div className="w-64 mx-auto mt-4">
+                        <img
+                          src={`/api/proxy-image?url=${encodeURIComponent(thumbnail)}`}
+                          alt={title || ''}
+                          style={{
+                            width: '100%',
+                            height: 'auto',
+                            borderRadius: '0.5rem'
+                          }}
+                        />
+                        {title && <h2 className="text-lg font-serif mt-4 text-center">{title}</h2>}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-4">
                     {savedQuotes.map((quote, index) => (
                       <div key={index} className="group relative text-gray-800 font-serif leading-relaxed">
@@ -329,38 +378,6 @@ export default function YouTubeQuotes() {
                 </div>
               </div>
             </details>
-          </div>
-        )}
-
-        {quotes.length > 0 && !loading && (
-          <div className="flex flex-wrap gap-4 mb-8 justify-center items-center">
-            <button
-              onClick={generatePodcast}
-              disabled={generatingPodcast}
-              className="px-4 py-2 text-sm bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors disabled:opacity-50"
-            >
-              {generatingPodcast ? 'Generating...' : 'Generate Podcast'}
-            </button>
-            <div className="flex gap-4">
-              <button
-                onClick={copyTranscript}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Copy Transcript
-              </button>
-              <button
-                onClick={copyFormattedTranscript}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Copy Speaker Format
-              </button>
-              <button
-                onClick={() => setShowTranscript(!showTranscript)}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                {showTranscript ? 'Hide Transcript' : 'View Transcript'}
-              </button>
-            </div>
           </div>
         )}
 

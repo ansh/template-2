@@ -1,4 +1,6 @@
 import "./globals.css";
+import { ClerkProvider } from '@clerk/nextjs';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
 
 export default function RootLayout({
   children,
@@ -7,7 +9,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <ClerkProvider>
+        <AuthProvider>
+          <body>{children}</body>
+        </AuthProvider>
+      </ClerkProvider>
     </html>
   );
 }

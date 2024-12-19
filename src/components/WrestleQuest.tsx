@@ -57,7 +57,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
       { name: "Strength", points: 0, color: "bg-yellow-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Endurance", points: 0, color: "bg-pink-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Spd/Agility", points: 0, color: "bg-purple-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
-      { name: "Mindset", points: 0, color: "bg-orange-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
+      { name: "Mindset", points: 0, color: "bg-orange-400", xpValue: 25, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Rec/Health", points: 0, color: "bg-red-400", xpValue: 25, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Flexibility", points: 0, color: "bg-green-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false }
     ]
@@ -112,14 +112,18 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     newUserData.skills[skillIndex].points += 1;
     newUserData.skills[skillIndex].totalPoints += 1;
     
+    // Add XP immediately when skill point is added
+    newUserData.xp += newUserData.skills[skillIndex].xpValue;
+    
+    // Level up if XP reaches 500
+    if (newUserData.xp >= 500) {
+      newUserData.level += 1;
+      newUserData.xp = 0;
+    }
+    
+    // Check if skill should level up (still at 3 points)
     if (newUserData.skills[skillIndex].points >= 3) {
       newUserData.skills[skillIndex].isLevelingUp = true;
-      newUserData.xp += newUserData.skills[skillIndex].xpValue;
-      
-      if (newUserData.xp >= 500) {
-        newUserData.level += 1;
-        newUserData.xp = 0;
-      }
       
       setTimeout(() => {
         const updatedData = { ...newUserData };
@@ -132,7 +136,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
         setDoc(userDoc, updatedData);
       }, 1000);
     }
-    
+
     setUserData(newUserData);
     
     const userDoc = doc(db, "users", userId);
@@ -338,14 +342,14 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
               <h2 className="text-xl font-bold text-center mb-4">LEVEL SYSTEM</h2>
               <div className="grid grid-cols-5 gap-2">
                 {[
-                  { level: 1, title: "NOVICE", color: "bg-gray-400" },
-                  { level: 5, title: "STRIKER", color: "bg-cyan-400" },
-                  { level: 12, title: "GRAPPLER", color: "bg-green-500" },
-                  { level: 25, title: "CHAMPION", color: "bg-pink-500" },
-                  { level: 50, title: "LEGEND", color: "bg-yellow-500" }
+                  { level: 1, title: "NOVICE", color: "bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600" },
+                  { level: 5, title: "STRIKER", color: "bg-gradient-to-br from-sky-300 via-cyan-400 to-blue-600" },
+                  { level: 12, title: "GRAPPLER", color: "bg-gradient-to-br from-emerald-300 via-green-400 to-green-700" },
+                  { level: 25, title: "CHAMPION", color: "bg-gradient-to-br from-rose-300 via-pink-500 to-purple-700" },
+                  { level: 50, title: "LEGEND", color: "bg-gradient-to-br from-yellow-200 via-amber-400 to-orange-600" }
                 ].map((rank) => (
                   <div key={rank.title} className="flex flex-col items-center">
-                    <div className={`w-10 h-10 rounded-full ${rank.color} flex items-center justify-center text-base font-bold`}>
+                    <div className={`w-10 h-10 rounded-full ${rank.color} flex items-center justify-center text-base font-bold shadow-lg text-white`}>
                       {rank.level}
                     </div>
                     <div className="text-xs mt-1 text-center">{rank.title}</div>

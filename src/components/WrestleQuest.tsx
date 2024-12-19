@@ -98,6 +98,10 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     return "NOVICE";
   };
 
+  const getXPThreshold = (level: number) => {
+    return level * 500;
+  };
+
   const handleAddSkillPoint = async (skillIndex: number) => {
     const today = new Date();
     const newUserData = { ...userData };
@@ -125,9 +129,9 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     newUserData.xp += newUserData.skills[skillIndex].xpValue;
     
     // Level up if XP reaches 500, but keep excess XP
-    if (newUserData.xp >= 500) {
+    if (newUserData.xp >= getXPThreshold(newUserData.level)) {
       newUserData.level += 1;
-      newUserData.xp = newUserData.xp - 500; // Keep the excess XP instead of resetting to 0
+      // No need to subtract XP anymore, it will continue accumulating
     }
     
     // Check if skill should level up (still at 3 points)
@@ -216,6 +220,10 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     return "bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600";
   };
 
+  const getProgressValue = (xp: number) => {
+    return ((xp % 500) / 500) * 100;
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative">
       <div className="pb-16">
@@ -288,11 +296,11 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                 <div className="relative">
                   <div className="absolute w-full -top-5 flex justify-center">
                     <span className="font-mono text-sm text-white font-semibold" style={styles.textWithStroke}>
-                      XP: {userData.xp}/500
+                      XP: {userData.xp}/{getXPThreshold(userData.level)}
                     </span>
                   </div>
                   <Progress 
-                    value={userData.xp >= 500 ? 100 : (userData.xp / 500) * 100} 
+                    value={getProgressValue(userData.xp)}
                     className="h-6 bg-gray-800"
                     indicatorClassName="bg-gray-200"
                   />

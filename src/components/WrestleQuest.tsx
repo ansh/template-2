@@ -11,6 +11,14 @@ import { storage } from "@/lib/firebase/firebase";
 import Settings from "@/components/Settings";
 import Journal from "@/components/Journal";
 
+const styles = {
+  textWithStroke: {
+    WebkitTextStroke: '1px black',
+    textStroke: '1px black',
+    color: 'white',
+  } as React.CSSProperties
+};
+
 interface Skill {
   name: string;
   points: number;
@@ -277,13 +285,17 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                 <span className="text-base font-bold -rotate-45">{userData.level}</span>
               </div>
               <div className="pl-12">
-                <Progress 
-                  value={userData.xp >= 500 ? 100 : (userData.xp / 500) * 100} 
-                  className="h-6 bg-gray-800"
-                  indicatorClassName="bg-gray-200"
-                />
-                <div className="absolute inset-y-0 right-2 flex items-center justify-center">
-                  <span className="font-mono text-xs">xp: {userData.xp}/500</span>
+                <div className="relative">
+                  <div className="absolute w-full -top-5 flex justify-center">
+                    <span className="font-mono text-sm text-white font-semibold" style={styles.textWithStroke}>
+                      XP: {userData.xp}/500
+                    </span>
+                  </div>
+                  <Progress 
+                    value={userData.xp >= 500 ? 100 : (userData.xp / 500) * 100} 
+                    className="h-6 bg-gray-800"
+                    indicatorClassName="bg-gray-200"
+                  />
                 </div>
               </div>
             </div>

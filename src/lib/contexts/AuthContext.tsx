@@ -1,76 +1,44 @@
 "use client";
 
 import React, { createContext, useEffect, useState } from "react";
-import { init } from '@instantdb/react';
-import { useAuth as useAuthClerk } from '@clerk/nextjs';
-import { useUser } from '@clerk/nextjs';
-
-// ID for app: YapThread
-const APP_ID = 'b1b31ae5-5bd5-4950-a234-3934c3ea73d7';
-// TODO: Change this to clerk-production before deploying to production
-const CLERK_CLIENT_NAME = 'clerk';
-
-export const db = init({ appId: APP_ID });
+import { User } from "firebase/auth";
+import { auth } from "@/lib/firebase/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   loading: boolean;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signOut: async () => { },
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { getToken, signOut: clerkSignOut } = useAuthClerk();
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
-
-  const signInToInstantWithClerkToken = async () => {
-    try {
-      const idToken = await getToken();
-
-      if (!idToken) {
-        return;
-      }
-
-      // Sign in to InstantDB with Clerk token
-      await db.auth.signInWithIdToken({
-        clientName: CLERK_CLIENT_NAME,
-        idToken: idToken,
-      });
-    } catch (error) {
-      console.error("Error signing in to InstantDB:", error);
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      // First sign out of InstantDB
-      await db.auth.signOut();
-      // Then sign out of Clerk
-      await clerkSignOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
 
   useEffect(() => {
-    console.log("clerkLoaded", clerkLoaded);
-    console.log("clerkUser", clerkUser);
-    if (clerkLoaded && clerkUser) {
-      signInToInstantWithClerkToken();
-    }
-    setLoading(!clerkLoaded);
-  }, [clerkLoaded, clerkUser]);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+      setLoading(false);
+    });
 
-  const value = {
-    user: clerkUser,
-    loading: loading,
-    signOut: signOut,
+    return () => unsubscribe();
+  }, []);
+
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Error signing in with Google:", error);
+    }
   };
 
   const signOut = async () => {
@@ -81,11 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const value = {
+    user,
+    loading,
+    signInWithGoogle,
+    signOut,
+  };
+
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
-
-export { AuthContext };

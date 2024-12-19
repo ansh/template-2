@@ -9,9 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^0.0.48",
-    "@ai-sdk/openai": "^0.0.54",
-    "@clerk/nextjs": "^6.9.3",
+    "@ai-sdk/anthropic": "^1.0.5",
+    "@ai-sdk/openai": "^1.0.10",
     "@deepgram/sdk": "^3.6.0",
     "@google/generative-ai": "^0.21.0",
     "@instantdb/react": "^0.16.7",
@@ -24,7 +23,7 @@
     "framer-motion": "^11.3.31",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.436.0",
-    "next": "14.2.7",
+    "next": "^14.2.20",
     "openai": "^4.76.1",
     "react": "^18",
     "react-dom": "^18",

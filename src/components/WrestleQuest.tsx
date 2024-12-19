@@ -116,10 +116,10 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     // Add XP immediately when skill point is added
     newUserData.xp += newUserData.skills[skillIndex].xpValue;
     
-    // Level up if XP reaches 500
+    // Level up if XP reaches 500, but keep excess XP
     if (newUserData.xp >= 500) {
       newUserData.level += 1;
-      newUserData.xp = 0;
+      newUserData.xp = newUserData.xp - 500; // Keep the excess XP instead of resetting to 0
     }
     
     // Check if skill should level up (still at 3 points)

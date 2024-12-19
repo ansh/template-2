@@ -324,7 +324,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                           className="h-5 bg-gray-800"
                           indicatorClassName={`${skill.color} transition-all duration-300 ease-in-out`}
                         />
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-black border border-white flex items-center justify-center text-sm">
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 bg-black border border-white flex items-center justify-center text-sm">
                           {skill.rank}
                         </div>
                       </div>

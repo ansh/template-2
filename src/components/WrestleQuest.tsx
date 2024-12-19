@@ -134,7 +134,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
         
         const userDoc = doc(db, "users", userId);
         setDoc(userDoc, updatedData);
-      }, 1000);
+      }, 500);
     }
 
     setUserData(newUserData);

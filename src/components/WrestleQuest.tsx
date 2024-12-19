@@ -223,12 +223,12 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
           <div className="p-4 max-w-[100vw] mx-auto overflow-x-hidden">
             <div className="flex items-start gap-3 mb-6">
               <label className="relative cursor-pointer group">
-                <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-600 bg-gray-700 transition-all duration-300 group-hover:border-white">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-600 bg-gray-700 transition-all duration-300 group-hover:border-white">
                   {userData.profileImage === "/placeholder.svg" ? (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 group-hover:text-white">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-12 w-12"
+                        className="h-14 w-14"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -242,9 +242,9 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                       </svg>
                     </div>
                   ) : (
-                    <img 
-                      src={userData.profileImage} 
-                      alt="Profile" 
+                    <img
+                      src={userData.profileImage}
+                      alt="Profile"
                       className="w-full h-full object-cover"
                     />
                   )}
@@ -252,33 +252,29 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
-                    handleImageUpload(e);
-                  }}
                   className="hidden"
+                  onChange={handleImageUpload}
                 />
-                <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 active:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                  <span className="text-white opacity-0 active:opacity-100 text-xs font-medium">
-                    Change
-                  </span>
-                </div>
               </label>
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 pt-4">
                 <input
                   type="text"
                   value={userData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full bg-transparent text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
-                  placeholder="Name"
+                  className="bg-transparent text-2xl font-bold mb-2 w-full focus:outline-none"
+                  placeholder="Enter your name"
                 />
-                <input
-                  type="text"
-                  value={userData.quest}
-                  onChange={(e) => handleQuestChange(e.target.value)}
-                  className="w-full bg-transparent text-lg text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
-                  placeholder="Quest:"
-                />
-                <div className="text-xl font-bold">
+                <div className="flex items-center text-xl mb-2">
+                  <span className="text-gray-400 mr-2">Quest:</span>
+                  <input
+                    type="text"
+                    value={userData.quest}
+                    onChange={(e) => handleQuestChange(e.target.value)}
+                    className="bg-transparent flex-1 focus:outline-none"
+                    placeholder="Enter your quest"
+                  />
+                </div>
+                <div className="text-xl font-semibold">
                   Level {userData.level} | {getRankTitle(userData.level)}
                 </div>
               </div>

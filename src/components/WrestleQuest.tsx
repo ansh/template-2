@@ -199,6 +199,14 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     await setDoc(userDoc, data);
   };
 
+  const getLevelGradientColor = (level: number) => {
+    if (level >= 50) return "bg-gradient-to-br from-yellow-200 via-amber-400 to-orange-600";
+    if (level >= 25) return "bg-gradient-to-br from-rose-300 via-pink-500 to-purple-700";
+    if (level >= 12) return "bg-gradient-to-br from-emerald-300 via-green-400 to-green-700";
+    if (level >= 5) return "bg-gradient-to-br from-sky-300 via-cyan-400 to-blue-600";
+    return "bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600";
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative">
       <div className="pb-16">
@@ -257,7 +265,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                     placeholder="Enter your quest"
                   />
                 </div>
-                <div className="text-xl font-semibold">
+                <div className={`text-xl font-semibold inline-block text-transparent bg-clip-text ${getLevelGradientColor(userData.level)}`}>
                   Level {userData.level} | {getRankTitle(userData.level)}
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from '../lib/hooks/useAuth';
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function SignInWithGoogle() {
   const { signInWithGoogle } = useAuth();
@@ -8,10 +8,12 @@ export default function SignInWithGoogle() {
   return (
     <button
       onClick={signInWithGoogle}
-      className="flex items-center justify-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300 ease-in-out"
+      className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-4 rounded-lg font-semibold 
+        active:from-blue-600 active:to-cyan-600 transition-all duration-300 
+        flex items-center justify-center gap-3 shadow-lg hover:shadow-cyan-500/20"
     >
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" className="w-6 h-6 mr-2" />
-      Sign in with Google
+      <img src="/google-colored.svg" alt="Google" className="w-6 h-6 bg-white rounded-full p-1" />
+      Start Your Quest with Google
     </button>
   );
 }

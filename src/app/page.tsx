@@ -1,48 +1,70 @@
-import Link from "next/link";
+"use client";
+
+import { useEffect } from "react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import SignInWithGoogle from "@/components/SignInWithGoogle";
+import WrestleQuest from "@/components/WrestleQuest";
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8">
-      <div>
-        <h2 className="text-2xl font-semibold text-center border p-4 font-mono rounded-md">
-          Get started by choosing a template path from the /paths/ folder.
-        </h2>
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
       </div>
-      <div>
-        <h1 className="text-6xl font-bold text-center">Make anything you imagine 🪄</h1>
-        <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
-          This whole page will be replaced when you run your template path.
-        </h2>
-      </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">AI Chat App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            An intelligent conversational app powered by AI models, featuring real-time responses
-            and seamless integration with Next.js and various AI providers.
-          </p>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-black text-white">
+        {/* Hero Section */}
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="max-w-md w-full space-y-8 text-center">
+            {/* Logo/Title */}
+            <div className="space-y-4">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-green-400 bg-clip-text text-transparent">
+                WrestleQuest
+              </h1>
+              <p className="text-xl font-semibold text-gray-300">
+                Level Up Your Wrestling Journey
+              </p>
+            </div>
+
+            {/* Feature Cards */}
+            <div className="grid gap-4 my-8">
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <h3 className="font-bold text-lg mb-2 text-cyan-400">Track Your Progress</h3>
+                <p className="text-gray-300">Monitor growth across 7 key wrestling skills with our intuitive leveling system</p>
+              </div>
+              
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <h3 className="font-bold text-lg mb-2 text-green-400">Stay Motivated</h3>
+                <p className="text-gray-300">Transform your training into an RPG-style journey with visual progression</p>
+              </div>
+              
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <h3 className="font-bold text-lg mb-2 text-pink-400">Achieve Goals</h3>
+                <p className="text-gray-300">Set and conquer personal quests while working toward wrestling excellence</p>
+              </div>
+            </div>
+
+            {/* CTA Section */}
+            <div className="space-y-4">
+              <p className="text-lg text-gray-400">
+                Ready to begin your quest?
+              </p>
+              <SignInWithGoogle />
+              <p className="text-sm text-gray-500 mt-4">
+                Join other wrestlers on their path to greatness
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">AI Image Generation App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            Create images from text prompts using AI, powered by the Replicate API and Next.js.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">Social Media App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            A feature-rich social platform with user profiles, posts, and interactions using
-            Firebase and Next.js.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">Voice Notes App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            A voice-based note-taking app with real-time transcription using Deepgram API, 
-            Firebase integration for storage, and a clean, simple interface built with Next.js.
-          </p>
-        </div>
-      </div>
-    </main>
-  );
+      </main>
+    );
+  }
+
+  return <WrestleQuest userId={user.uid} />;
 }

@@ -170,16 +170,10 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     if (!file) return;
 
     try {
-      // Create a reference to the storage location
       const imageRef = ref(storage, `profile-images/${userId}`);
-      
-      // Upload the file
       await uploadBytes(imageRef, file);
-      
-      // Get the download URL
       const downloadURL = await getDownloadURL(imageRef);
       
-      // Update user data with new profile image URL
       const newData = { ...userData, profileImage: downloadURL };
       setUserData(newData);
       await saveToFirebase(newData);
@@ -188,32 +182,21 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     }
   };
 
-  const handleProfilePicUpload = async (file: File) => {
-    try {
-      // Create a reference to the storage location
-      const imageRef = ref(storage, `profile-images/${userId}`);
-      
-      // Upload the file
-      await uploadBytes(imageRef, file);
-      
-      // Get the download URL
-      const downloadURL = await getDownloadURL(imageRef);
-      
-      // Update user data with new profile image URL
-      const newData = { ...userData, profileImage: downloadURL };
-      setUserData(newData);
-      await saveToFirebase(newData);
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    }
+  const handleNameChange = async (name: string) => {
+    const newData = { ...userData, name };
+    setUserData(newData);
+    await saveToFirebase(newData);
   };
 
-  const handleNameChange = (name: string) => {
-    setUserData(prev => ({ ...prev, name }));
+  const handleQuestChange = async (quest: string) => {
+    const newData = { ...userData, quest };
+    setUserData(newData);
+    await saveToFirebase(newData);
   };
 
-  const handleQuestChange = (quest: string) => {
-    setUserData(prev => ({ ...prev, quest }));
+  const saveToFirebase = async (data: UserData) => {
+    const userDoc = doc(db, "users", userId);
+    await setDoc(userDoc, data);
   };
 
   return (

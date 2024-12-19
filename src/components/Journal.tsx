@@ -12,6 +12,7 @@ interface JournalEntry {
   positives: string;
   opportunities: string;
   bigVision: string;
+  journal: string;
 }
 
 export default function Journal({ userId }: { userId: string }) {
@@ -21,7 +22,8 @@ export default function Journal({ userId }: { userId: string }) {
     actions: ['', '', ''],
     positives: '',
     opportunities: '',
-    bigVision: ''
+    bigVision: '',
+    journal: ''
   });
   const [showingPastEntries, setShowingPastEntries] = useState(false);
   const [pastEntries, setPastEntries] = useState<JournalEntry[]>([]);
@@ -171,6 +173,16 @@ export default function Journal({ userId }: { userId: string }) {
               className="w-full bg-transparent border border-gray-700 rounded-lg p-2 min-h-[100px] focus:outline-none focus:border-white"
             />
           </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold mb-4">JOURNAL</h2>
+          <p className="text-gray-400 mb-2">A space to write about anything you want</p>
+          <textarea
+            value={currentEntry.journal || ''}
+            onChange={(e) => handleInputChange('journal', e.target.value)}
+            className="w-full bg-transparent border border-gray-700 rounded-lg p-2 min-h-[200px] focus:outline-none focus:border-white"
+          />
         </section>
       </div>
     </div>

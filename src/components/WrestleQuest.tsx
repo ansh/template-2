@@ -31,11 +31,11 @@ interface UserData {
   skills: [
     { name: "Technique", points: number, color: "bg-blue-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
     { name: "Strength", points: number, color: "bg-yellow-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
-    { name: "Mindset", points: number, color: "bg-orange-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
+    { name: "Endurance", points: number, color: "bg-pink-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
     { name: "Spd/Agility", points: number, color: "bg-purple-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
+    { name: "Mindset", points: number, color: "bg-orange-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
     { name: "Rec/Health", points: number, color: "bg-red-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
-    { name: "Flexibility", points: number, color: "bg-green-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean },
-    { name: "Endurance", points: number, color: "bg-pink-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean }
+    { name: "Flexibility", points: number, color: "bg-green-400", xpValue: number, rank: number, totalPoints: number, isLevelingUp: boolean }
   ];
 }
 
@@ -55,11 +55,11 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     skills: [
       { name: "Technique", points: 0, color: "bg-blue-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Strength", points: 0, color: "bg-yellow-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
-      { name: "Mindset", points: 0, color: "bg-orange-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
+      { name: "Endurance", points: 0, color: "bg-pink-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Spd/Agility", points: 0, color: "bg-purple-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
+      { name: "Mindset", points: 0, color: "bg-orange-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
       { name: "Rec/Health", points: 0, color: "bg-red-400", xpValue: 25, rank: 1, totalPoints: 0, isLevelingUp: false },
-      { name: "Flexibility", points: 0, color: "bg-green-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
-      { name: "Endurance", points: 0, color: "bg-pink-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false }
+      { name: "Flexibility", points: 0, color: "bg-green-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false }
     ]
   });
 

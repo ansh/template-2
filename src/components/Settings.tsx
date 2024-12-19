@@ -16,8 +16,8 @@ export default function Settings() {
     try {
       // Default user data state
       const defaultUserData = {
-        name: "Name",
-        quest: "Quest:",
+        name: "",
+        quest: "",
         level: 1,
         xp: 0,
         profileImage: "/placeholder.svg",

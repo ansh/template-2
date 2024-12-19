@@ -46,8 +46,8 @@ interface WrestleQuestProps {
 
 export default function WrestleQuest({ userId }: WrestleQuestProps) {
   const [userData, setUserData] = useState<UserData>({
-    name: "Name",
-    quest: "Quest:",
+    name: "",
+    quest: "",
     level: 1,
     xp: 0,
     profileImage: "/placeholder.svg",

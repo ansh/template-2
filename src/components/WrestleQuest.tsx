@@ -215,7 +215,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     if (level >= 25) return "bg-gradient-to-br from-rose-300 via-pink-500 to-purple-700";
     if (level >= 12) return "bg-gradient-to-br from-emerald-300 via-green-400 to-green-700";
     if (level >= 5) return "bg-gradient-to-br from-sky-300 via-cyan-400 to-blue-600";
-    return "bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600";
+    return "bg-gradient-to-br from-orange-100 via-orange-200 to-orange-300";
   };
 
   const getProgressValue = (xp: number) => {
@@ -348,7 +348,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
               <h2 className="text-xl font-bold text-center mb-4">LEVEL SYSTEM</h2>
               <div className="grid grid-cols-5 gap-2">
                 {[
-                  { level: 1, title: "NOVICE", color: "bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600" },
+                  { level: 1, title: "NOVICE", color: "bg-gradient-to-br from-orange-100 via-orange-200 to-orange-300" },
                   { level: 5, title: "STRIKER", color: "bg-gradient-to-br from-sky-300 via-cyan-400 to-blue-600" },
                   { level: 12, title: "GRAPPLER", color: "bg-gradient-to-br from-emerald-300 via-green-400 to-green-700" },
                   { level: 25, title: "CHAMPION", color: "bg-gradient-to-br from-rose-300 via-pink-500 to-purple-700" },

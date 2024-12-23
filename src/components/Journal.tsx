@@ -27,6 +27,7 @@ export default function Journal({ userId }: { userId: string }) {
   });
   const [showingPastEntries, setShowingPastEntries] = useState(false);
   const [pastEntries, setPastEntries] = useState<JournalEntry[]>([]);
+  const [selectedPastEntry, setSelectedPastEntry] = useState<JournalEntry | null>(null);
 
   // Load today's entry or create new one
   useEffect(() => {
@@ -73,25 +74,117 @@ export default function Journal({ userId }: { userId: string }) {
     setShowingPastEntries(true);
   };
 
+  const handleViewPastEntry = (entry: JournalEntry) => {
+    setSelectedPastEntry(entry);
+  };
+
+  const handleBackToList = () => {
+    setSelectedPastEntry(null);
+  };
+
   if (showingPastEntries) {
-    return (
-      <div className="min-h-screen bg-black text-white p-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Past Entries</h1>
-          <button 
-            onClick={() => setShowingPastEntries(false)}
-            className="bg-gray-800 px-4 py-2 rounded-lg"
-          >
-            Back to Today
-          </button>
+    if (selectedPastEntry) {
+      return (
+        <div className="p-4">
+          <div className="mb-6 flex items-center gap-4">
+            <button
+              onClick={handleBackToList}
+              className="text-blue-400 hover:text-blue-300"
+            >
+              ← Back to entries
+            </button>
+            <h2 className="text-xl font-bold">
+              Journal Entry: {format(new Date(selectedPastEntry.date), 'MMMM d, yyyy')}
+            </h2>
+          </div>
+
+          <div className="space-y-8">
+            <section>
+              <h2 className="text-xl font-bold mb-4">GRATITUDE</h2>
+              <div className="space-y-2">
+                {selectedPastEntry.gratitude.map((item, index) => (
+                  <div key={index} className="border-b border-gray-700 py-2">
+                    {item || 'No entry'}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-4">ACTIONS</h2>
+              <div className="space-y-2">
+                {selectedPastEntry.actions.map((item, index) => (
+                  <div key={index} className="border-b border-gray-700 py-2">
+                    {item || 'No entry'}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-4">REFLECT</h2>
+              
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2">POSITIVES</h3>
+                <div className="border border-gray-700 rounded-lg p-4">
+                  {selectedPastEntry.positives || 'No entry'}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2">OPPORTUNITIES</h3>
+                <div className="border border-gray-700 rounded-lg p-4">
+                  {selectedPastEntry.opportunities || 'No entry'}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">BIG VISION REMINDER</h3>
+                <div className="border border-gray-700 rounded-lg p-4">
+                  {selectedPastEntry.bigVision || 'No entry'}
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-4">JOURNAL</h2>
+              <div className="border border-gray-700 rounded-lg p-4">
+                {selectedPastEntry.journal || 'No entry'}
+              </div>
+            </section>
+          </div>
         </div>
-        <div className="space-y-6">
+      );
+    }
+
+    return (
+      <div className="p-4">
+        <div className="mb-6 flex items-center gap-4">
+          <button
+            onClick={() => setShowingPastEntries(false)}
+            className="text-blue-400 hover:text-blue-300"
+          >
+            ← Back to today
+          </button>
+          <h2 className="text-xl font-bold">Past Journal Entries</h2>
+        </div>
+
+        <div className="grid gap-4">
           {pastEntries.map((entry) => (
-            <div key={entry.date} className="bg-gray-900 rounded-lg p-4">
-              <h2 className="text-xl font-semibold mb-4">{format(new Date(entry.date), 'MMMM d, yyyy')}</h2>
-              {/* Display past entry content */}
-              {/* Add more sections as needed */}
-            </div>
+            <button
+              key={entry.date}
+              onClick={() => handleViewPastEntry(entry)}
+              className="w-full text-left bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <div className="font-semibold">
+                {format(new Date(entry.date), 'MMMM d, yyyy')}
+              </div>
+              {entry.journal && (
+                <div className="text-sm text-gray-400 mt-2 line-clamp-2">
+                  {entry.journal}
+                </div>
+              )}
+            </button>
           ))}
         </div>
       </div>

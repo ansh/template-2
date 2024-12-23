@@ -218,6 +218,14 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
     return "bg-gradient-to-br from-orange-100 via-orange-200 to-orange-300";
   };
 
+  const getProgressBarColor = (level: number) => {
+    if (level >= 50) return "from-yellow-200 via-amber-400 to-orange-600";
+    if (level >= 25) return "from-rose-300 via-pink-500 to-purple-700";
+    if (level >= 12) return "from-emerald-300 via-green-400 to-green-700";
+    if (level >= 5) return "from-sky-300 via-cyan-400 to-blue-600";
+    return "from-orange-100 via-orange-200 to-orange-300";
+  };
+
   const getProgressValue = (xp: number) => {
     return ((xp % 500) / 500) * 100;
   };
@@ -287,10 +295,13 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
             </div>
 
             <div className="relative mb-8 mx-auto max-w-[90%]">
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-black border-2 border-white rotate-45 flex items-center justify-center z-10">
-                <span className="text-base font-bold -rotate-45">{userData.level}</span>
+              <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 ${getLevelGradientColor(userData.level)} 
+                border-2 border-black/30 shadow-lg rotate-45 flex items-center justify-center z-10 
+                before:absolute before:inset-[-2px] before:rounded-sm before:bg-gradient-to-br 
+                before:from-white/50 before:to-white/10 before:-z-10`}>
+                <span className="text-xl font-bold -rotate-45 text-black">{userData.level}</span>
               </div>
-              <div className="pl-12">
+              <div className="pl-16">
                 <div className="relative">
                   <div className="absolute w-full -top-5 flex justify-center">
                     <span className="font-mono text-sm text-white font-semibold" style={styles.textWithStroke}>
@@ -300,7 +311,7 @@ export default function WrestleQuest({ userId }: WrestleQuestProps) {
                   <Progress 
                     value={getProgressValue(userData.xp)}
                     className="h-6 bg-gray-800"
-                    indicatorClassName="bg-gray-200"
+                    indicatorClassName={`bg-gradient-to-r ${getProgressBarColor(userData.level)}`}
                   />
                 </div>
               </div>

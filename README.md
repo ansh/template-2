@@ -13,3 +13,5 @@ This doesn't really matter, but is useful for the AI to understand more about th
 - TailwindCSS
 - Firebase Auth, Storage, and Database
 - Multiple AI endpoints including OpenAI, Anthropic, and Replicate using Vercel's AI SDK
+
+## UI-2

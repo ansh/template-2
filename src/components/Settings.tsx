@@ -25,7 +25,6 @@ export default function Settings() {
         level: 1,
         xp: 0,
         profileImage: "/placeholder.svg",
-        consecutiveDays: 0,
         lastActivityDate: null,
         skills: [
           { name: "Technique", points: 0, color: "bg-blue-400", xpValue: 50, rank: 1, totalPoints: 0, isLevelingUp: false },
@@ -89,10 +88,6 @@ export default function Settings() {
     {
       question: "Can I change my quest?",
       answer: "Yes! You can update your quest at any time from the home screen. Click on your current quest to edit it and set a new goal."
-    },
-    {
-      question: "How do I track consecutive days?",
-      answer: "The app automatically tracks your streak when you log any activity. Complete at least one activity per day to maintain your streak!"
     }
   ];
 

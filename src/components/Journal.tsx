@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { doc, setDoc, getDoc, collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import { format } from "date-fns";
+import { ArrowLeft } from "lucide-react";
 
 interface JournalEntry {
   date: string;
@@ -85,70 +86,73 @@ export default function Journal({ userId }: { userId: string }) {
   if (showingPastEntries) {
     if (selectedPastEntry) {
       return (
-        <div className="p-4">
-          <div className="mb-6 flex items-center gap-4">
+        <div className="p-6 max-w-4xl mx-auto">
+          <div className="mb-8 flex items-center gap-4">
             <button
               onClick={handleBackToList}
-              className="text-blue-400 hover:text-blue-300"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
             >
-              ← Back to entries
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
             </button>
-            <h2 className="text-xl font-bold">
-              Journal Entry: {format(new Date(selectedPastEntry.date), 'MMMM d, yyyy')}
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {format(new Date(selectedPastEntry.date), 'MMMM d, yyyy')}
             </h2>
           </div>
 
-          <div className="space-y-8">
-            <section>
-              <h2 className="text-xl font-bold mb-4">GRATITUDE</h2>
-              <div className="space-y-2">
+          <div className="space-y-10">
+            <section className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm">
+              <h2 className="text-xl font-bold mb-6 text-blue-400">GRATITUDE</h2>
+              <div className="space-y-4">
                 {selectedPastEntry.gratitude.map((item, index) => (
-                  <div key={index} className="border-b border-gray-700 py-2">
+                  <div key={index} className="bg-gray-800/50 rounded-lg p-4">
                     {item || 'No entry'}
                   </div>
                 ))}
               </div>
             </section>
 
-            <section>
-              <h2 className="text-xl font-bold mb-4">ACTIONS</h2>
-              <div className="space-y-2">
+            <section className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm">
+              <h2 className="text-xl font-bold mb-6 text-purple-400">ACTIONS</h2>
+              <div className="space-y-4">
                 {selectedPastEntry.actions.map((item, index) => (
-                  <div key={index} className="border-b border-gray-700 py-2">
+                  <div key={index} className="bg-gray-800/50 rounded-lg p-4">
                     {item || 'No entry'}
                   </div>
                 ))}
               </div>
             </section>
 
-            <section>
-              <h2 className="text-xl font-bold mb-4">REFLECT</h2>
+            <section className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm">
+              <h2 className="text-xl font-bold mb-6 text-orange-400">REFLECT</h2>
               
-              <div className="mb-6">
-                <h3 className="font-semibold mb-2">POSITIVES</h3>
-                <div className="border border-gray-700 rounded-lg p-4">
-                  {selectedPastEntry.positives || 'No entry'}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold mb-3 text-orange-300">POSITIVES</h3>
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    {selectedPastEntry.positives || 'No entry'}
+                  </div>
                 </div>
-              </div>
 
-              <div className="mb-6">
-                <h3 className="font-semibold mb-2">OPPORTUNITIES</h3>
-                <div className="border border-gray-700 rounded-lg p-4">
-                  {selectedPastEntry.opportunities || 'No entry'}
+                <div>
+                  <h3 className="font-semibold mb-3 text-orange-300">OPPORTUNITIES</h3>
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    {selectedPastEntry.opportunities || 'No entry'}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <h3 className="font-semibold mb-2">BIG VISION REMINDER</h3>
-                <div className="border border-gray-700 rounded-lg p-4">
-                  {selectedPastEntry.bigVision || 'No entry'}
+                <div>
+                  <h3 className="font-semibold mb-3 text-orange-300">BIG VISION</h3>
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    {selectedPastEntry.bigVision || 'No entry'}
+                  </div>
                 </div>
               </div>
             </section>
 
-            <section>
-              <h2 className="text-xl font-bold mb-4">JOURNAL</h2>
-              <div className="border border-gray-700 rounded-lg p-4">
+            <section className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm">
+              <h2 className="text-xl font-bold mb-6 text-green-400">JOURNAL</h2>
+              <div className="bg-gray-800/50 rounded-lg p-4 whitespace-pre-wrap">
                 {selectedPastEntry.journal || 'No entry'}
               </div>
             </section>
@@ -158,15 +162,18 @@ export default function Journal({ userId }: { userId: string }) {
     }
 
     return (
-      <div className="p-4">
-        <div className="mb-6 flex items-center gap-4">
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="mb-8 flex items-center gap-4">
           <button
             onClick={() => setShowingPastEntries(false)}
-            className="text-blue-400 hover:text-blue-300"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
           >
-            ← Back to today
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
           </button>
-          <h2 className="text-xl font-bold">Past Journal Entries</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Journal History
+          </h2>
         </div>
 
         <div className="grid gap-4">
@@ -174,13 +181,13 @@ export default function Journal({ userId }: { userId: string }) {
             <button
               key={entry.date}
               onClick={() => handleViewPastEntry(entry)}
-              className="w-full text-left bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors"
+              className="w-full text-left bg-gray-900/50 p-6 rounded-xl hover:bg-gray-800/50 transition-all duration-200 backdrop-blur-sm group"
             >
-              <div className="font-semibold">
+              <div className="font-semibold text-lg mb-2 group-hover:text-blue-400 transition-colors">
                 {format(new Date(entry.date), 'MMMM d, yyyy')}
               </div>
               {entry.journal && (
-                <div className="text-sm text-gray-400 mt-2 line-clamp-2">
+                <div className="text-gray-400 line-clamp-2">
                   {entry.journal}
                 </div>
               )}
@@ -192,89 +199,97 @@ export default function Journal({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{format(new Date(currentEntry.date), 'MMMM d, yyyy')}</h1>
-        <button 
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          {format(new Date(), 'MMMM d, yyyy')}
+        </h2>
+        <button
           onClick={loadPastEntries}
-          className="bg-gray-800 px-4 py-2 rounded-lg"
+          className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
         >
-          View Past Entries
+          View History
         </button>
       </div>
 
-      <div className="space-y-8">
-        <section>
-          <h2 className="text-xl font-bold mb-4">GRATITUDE</h2>
-          <p className="text-gray-400 mb-2">Today I'm grateful for...</p>
-          {currentEntry.gratitude.map((item, index) => (
-            <input
-              key={index}
-              type="text"
-              value={item}
-              onChange={(e) => handleInputChange('gratitude', e.target.value, index)}
-              className="w-full bg-transparent border-b border-gray-700 py-2 mb-2 focus:outline-none focus:border-white"
-              placeholder={`${index + 1}.`}
-            />
-          ))}
+      <div className="space-y-6">
+        <section className="bg-gray-900/50 rounded-xl p-5 backdrop-blur-sm">
+          <h2 className="text-lg font-bold mb-3 text-blue-400">GRATITUDE</h2>
+          <p className="text-gray-400 mb-3 text-sm">List three things you're grateful for today</p>
+          <div className="space-y-3">
+            {currentEntry.gratitude.map((item, index) => (
+              <input
+                key={index}
+                type="text"
+                value={item}
+                onChange={(e) => handleInputChange('gratitude', e.target.value, index)}
+                className="w-full bg-gray-800/50 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400/50 border-none"
+                placeholder={`Gratitude ${index + 1}`}
+              />
+            ))}
+          </div>
         </section>
 
-        <section>
-          <h2 className="text-xl font-bold mb-4">TODAY'S ACTION</h2>
-          <p className="text-gray-400 mb-2">What actions will you take today?</p>
-          {currentEntry.actions.map((item, index) => (
-            <input
-              key={index}
-              type="text"
-              value={item}
-              onChange={(e) => handleInputChange('actions', e.target.value, index)}
-              className="w-full bg-transparent border-b border-gray-700 py-2 mb-2 focus:outline-none focus:border-white"
-              placeholder={`${index + 1}.`}
-            />
-          ))}
+        <section className="bg-gray-900/50 rounded-xl p-5 backdrop-blur-sm">
+          <h2 className="text-lg font-bold mb-3 text-purple-400">ACTIONS</h2>
+          <p className="text-gray-400 mb-3 text-sm">What actions will you take today?</p>
+          <div className="space-y-3">
+            {currentEntry.actions.map((item, index) => (
+              <input
+                key={index}
+                type="text"
+                value={item}
+                onChange={(e) => handleInputChange('actions', e.target.value, index)}
+                className="w-full bg-gray-800/50 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-400/50 border-none"
+                placeholder={`Action ${index + 1}`}
+              />
+            ))}
+          </div>
         </section>
 
-        <section>
-          <h2 className="text-xl font-bold mb-4">REFLECT</h2>
+        <section className="bg-gray-900/50 rounded-xl p-5 backdrop-blur-sm">
+          <h2 className="text-lg font-bold mb-3 text-orange-400">REFLECT</h2>
           
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">POSITIVES</h3>
-            <p className="text-gray-400 mb-2">What things did you feel good about or enjoy learning today?</p>
-            <textarea
-              value={currentEntry.positives}
-              onChange={(e) => handleInputChange('positives', e.target.value)}
-              className="w-full bg-transparent border border-gray-700 rounded-lg p-2 min-h-[100px] focus:outline-none focus:border-white"
-            />
-          </div>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-orange-300">POSITIVES</h3>
+              <p className="text-gray-400 mb-2 text-sm">What things did you feel good about or enjoy learning today?</p>
+              <textarea
+                value={currentEntry.positives}
+                onChange={(e) => handleInputChange('positives', e.target.value)}
+                className="w-full bg-gray-800/50 rounded-lg p-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-orange-400/50 border-none"
+              />
+            </div>
 
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">OPPORTUNITIES</h3>
-            <p className="text-gray-400 mb-2">What challenges are you having that need improvement?</p>
-            <textarea
-              value={currentEntry.opportunities}
-              onChange={(e) => handleInputChange('opportunities', e.target.value)}
-              className="w-full bg-transparent border border-gray-700 rounded-lg p-2 min-h-[100px] focus:outline-none focus:border-white"
-            />
-          </div>
+            <div>
+              <h3 className="font-semibold mb-2 text-orange-300">OPPORTUNITIES</h3>
+              <p className="text-gray-400 mb-2 text-sm">What challenges are you having that need improvement?</p>
+              <textarea
+                value={currentEntry.opportunities}
+                onChange={(e) => handleInputChange('opportunities', e.target.value)}
+                className="w-full bg-gray-800/50 rounded-lg p-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-orange-400/50 border-none"
+              />
+            </div>
 
-          <div>
-            <h3 className="font-semibold mb-2">BIG VISION REMINDER</h3>
-            <p className="text-gray-400 mb-2">Whether it's a goal, vision, or mission, write it down.</p>
-            <textarea
-              value={currentEntry.bigVision}
-              onChange={(e) => handleInputChange('bigVision', e.target.value)}
-              className="w-full bg-transparent border border-gray-700 rounded-lg p-2 min-h-[100px] focus:outline-none focus:border-white"
-            />
+            <div>
+              <h3 className="font-semibold mb-2 text-orange-300">BIG VISION REMINDER</h3>
+              <p className="text-gray-400 mb-2 text-sm">Whether it's a goal, vision, or mission, write it down.</p>
+              <textarea
+                value={currentEntry.bigVision}
+                onChange={(e) => handleInputChange('bigVision', e.target.value)}
+                className="w-full bg-gray-800/50 rounded-lg p-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-orange-400/50 border-none"
+              />
+            </div>
           </div>
         </section>
 
-        <section>
-          <h2 className="text-xl font-bold mb-4">JOURNAL</h2>
-          <p className="text-gray-400 mb-2">A space to write about anything you want</p>
+        <section className="bg-gray-900/50 rounded-xl p-5 backdrop-blur-sm">
+          <h2 className="text-lg font-bold mb-3 text-green-400">JOURNAL</h2>
+          <p className="text-gray-400 mb-2 text-sm">A space to write about anything you want</p>
           <textarea
             value={currentEntry.journal || ''}
             onChange={(e) => handleInputChange('journal', e.target.value)}
-            className="w-full bg-transparent border border-gray-700 rounded-lg p-2 min-h-[200px] focus:outline-none focus:border-white"
+            className="w-full bg-gray-800/50 rounded-lg p-3 min-h-[150px] focus:outline-none focus:ring-2 focus:ring-green-400/50 border-none"
           />
         </section>
       </div>

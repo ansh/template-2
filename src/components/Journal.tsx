@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, setDoc, getDoc, collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import { format } from "date-fns";
@@ -16,6 +16,26 @@ interface JournalEntry {
   journal: string;
 }
 
+const AutoGrowTextarea = ({ value, onChange, ...props }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      {...props}
+    />
+  );
+};
+
 export default function Journal({ userId }: { userId: string }) {
   const [currentEntry, setCurrentEntry] = useState<JournalEntry>({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -29,6 +49,7 @@ export default function Journal({ userId }: { userId: string }) {
   const [showingPastEntries, setShowingPastEntries] = useState(false);
   const [pastEntries, setPastEntries] = useState<JournalEntry[]>([]);
   const [selectedPastEntry, setSelectedPastEntry] = useState<JournalEntry | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load today's entry or create new one
   useEffect(() => {

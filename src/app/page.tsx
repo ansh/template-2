@@ -9,7 +9,7 @@ export default function Home() {
         </h2>
       </div>
       <div>
-        <h1 className="text-6xl font-bold text-center">Meme Generator 🪄</h1>
+        <h1 className="text-6xl font-bold text-center">Meme Generator! 🪄</h1>
         <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
         Turn your ideas into viral memes with AI-powered suggestions
         </h2>

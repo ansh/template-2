@@ -1,16 +1,15 @@
-import { Suspense } from 'react';
 import MemeGenerator from './components/MemeGenerator';
+import MemeDatabase from './components/MemeDatabase';
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-4 md:p-8 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900">AI Meme Generator</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-8 text-gray-900">Meme Generator</h1>
       
-      <Suspense fallback={<div className="animate-pulse h-96 bg-gray-200 rounded-lg">
-        Loading generator...
-      </div>}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <MemeGenerator />
-      </Suspense>
-    </main>
+        <MemeDatabase />
+      </div>
+    </div>
   );
 }

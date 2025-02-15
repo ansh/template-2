@@ -4,7 +4,12 @@
 
 body {
   color: #000;
-  background: #f5f5f5;
+  background: #fff;
+}
+
+.dark {
+  color: #fff;
+  background: #000;
 }
 
 @layer utilities {

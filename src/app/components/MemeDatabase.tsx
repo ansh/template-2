@@ -1,38 +1,57 @@
 'use client';
 
-import { useState } from 'react';
-import { MemeVideo } from '@/lib/types/meme';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import { MemeTemplate } from '@/lib/supabase/types';
 
 export default function MemeDatabase() {
-  const [memes, setMemes] = useState<MemeVideo[]>([]);
+  const [templates, setTemplates] = useState<MemeTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTemplates() {
+      try {
+        const { data, error } = await supabase
+          .from('meme_templates')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (data) setTemplates(data);
+      } catch (error) {
+        console.error('Error loading templates:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTemplates();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <p className="text-gray-600">Loading templates...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Meme Database</h2>
-      
-      {memes.length === 0 ? (
-        <p className="text-gray-500">No memes in database yet</p>
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-bold mb-4 text-gray-900">Template Database</h2>
+      {templates.length === 0 ? (
+        <p className="text-gray-600">No templates in database yet</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {memes.map((meme) => (
-            <div key={meme.id} className="border rounded-md p-4">
-              <h3 className="font-medium">{meme.name}</h3>
+        <div className="space-y-4">
+          {templates.map((template) => (
+            <div key={template.id} className="border rounded p-4">
+              <h3 className="font-bold text-gray-900">{template.name}</h3>
               <video
-                src={meme.videoUrl}
-                className="w-full aspect-[9/16] object-cover rounded-md mt-2"
+                src={template.video_url}
+                className="w-full mt-2"
                 controls
               />
-              <div className="mt-2 space-y-1">
-                <p className="text-sm"><strong>Instructions:</strong> {meme.instructions}</p>
-                <p className="text-sm"><strong>Typical Usage:</strong> {meme.typicalUsage}</p>
-                <div className="flex flex-wrap gap-1">
-                  {meme.tags.map((tag) => (
-                    <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              <p className="text-gray-600 mt-2">{template.instructions}</p>
             </div>
           ))}
         </div>

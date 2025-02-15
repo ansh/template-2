@@ -13,7 +13,7 @@ export default function Navigation() {
               <a href="/" className="px-3 py-2 text-gray-700 hover:text-gray-900">
                 Home
               </a>
-              <a href="/admin/upload" className="px-3 py-2 text-gray-700 hover:text-gray-900">
+              <a href="/upload" className="px-3 py-2 text-gray-700 hover:text-gray-900">
                 Upload Template
               </a>
             </div>

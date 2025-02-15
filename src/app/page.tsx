@@ -11,7 +11,7 @@ export default function Home() {
       <div>
         <h1 className="text-6xl font-bold text-center">Meme Generator 🪄</h1>
         <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
-          This whole page will be replaced when you run your template path.
+          Create memes with AI!
         </h2>
       </div>
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

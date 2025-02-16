@@ -50,7 +50,13 @@ export async function POST(req: Request) {
       response_format: { type: "json_object" }
     });
 
-    const result = JSON.parse(completion.choices[0].message.content);
+    const content = completion.choices[0].message.content;
+    
+    if (!content) {
+      throw new Error('No content received from OpenAI');
+    }
+
+    const result = JSON.parse(content);
 
     // Find the selected template from our database
     const selectedTemplate = templates.find(t => t.id === result.templateId);

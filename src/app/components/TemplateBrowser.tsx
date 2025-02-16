@@ -3,40 +3,43 @@
 import { useState, useEffect } from 'react';
 import { MemeTemplate } from '@/lib/supabase/types';
 
-interface TemplateBrowserProps {
+interface Props {
   onSelectTemplate: (template: MemeTemplate) => void;
 }
 
-export default function TemplateBrowser({ onSelectTemplate }: TemplateBrowserProps) {
+export default function TemplateBrowser({ onSelectTemplate }: Props) {
   const [templates, setTemplates] = useState<MemeTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
         const response = await fetch('/api/templates');
+        if (!response.ok) {
+          throw new Error('Failed to fetch templates');
+        }
         const data = await response.json();
-        setTemplates(data.templates);
-      } catch (error) {
-        console.error('Error fetching templates:', error);
+        setTemplates(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load templates');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchTemplates();
   }, []);
 
-  if (loading) {
-    return <div className="animate-pulse h-48 bg-gray-200 rounded"></div>;
-  }
+  if (isLoading) return <div>Loading templates...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {templates.map((template) => (
-        <div 
-          key={template.id} 
-          className="border rounded p-4 cursor-pointer hover:border-blue-500 bg-white"
+        <div
+          key={template.id}
+          className="border rounded-lg p-4 cursor-pointer hover:border-blue-500"
           onClick={() => onSelectTemplate(template)}
         >
           <video
@@ -44,8 +47,7 @@ export default function TemplateBrowser({ onSelectTemplate }: TemplateBrowserPro
             className="w-full aspect-video object-cover rounded mb-2"
             controls
           />
-          <h3 className="font-medium text-gray-900">{template.name}</h3>
-          <p className="text-sm text-gray-600 mt-1">{template.instructions}</p>
+          <h3 className="font-medium">{template.name}</h3>
         </div>
       ))}
     </div>

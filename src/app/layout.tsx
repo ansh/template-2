@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navigation from './components/Navigation';
+import { Toaster } from 'react-hot-toast';
+import Link from 'next/link';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +24,7 @@ export default function RootLayout({
         <main className="container mx-auto px-4">
           {children}
         </main>
+        <Toaster />
       </body>
     </html>
   );

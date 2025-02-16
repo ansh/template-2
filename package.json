@@ -11,8 +11,8 @@
   "dependencies": {
     "@ai-sdk/openai": "^0.0.54",
     "@deepgram/sdk": "^3.6.0",
-    "@supabase/supabase-js": "^2.48.1",
     "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "^2.48.1",
     "ai": "^3.4.33",
     "date-fns": "^3.6.0",
     "firebase": "^10.13.0",

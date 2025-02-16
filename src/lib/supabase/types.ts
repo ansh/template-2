@@ -18,16 +18,22 @@ export interface Database {
           video_url: string;
           instructions: string | null;
           created_at: string;
+          examples?: string[];
+          tags?: string[];
         };
         Insert: {
           name: string;
           video_url: string;
           instructions?: string | null;
+          examples?: string[];
+          tags?: string[];
         };
         Update: {
           name?: string;
           video_url?: string;
           instructions?: string | null;
+          examples?: string[];
+          tags?: string[];
         };
       };
     };
@@ -38,9 +44,10 @@ export interface MemeTemplate {
   id: string;
   name: string;
   video_url: string;
-  instructions: string | null;
-  created_at: string;
-  updated_at: string;
+  instructions?: string;
+  created_at?: string;
+  examples?: string[];
+  tags?: string[];
 }
 
 export interface MemeGeneration {

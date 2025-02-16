@@ -1,11 +1,11 @@
-import { supabaseClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from('meme_templates')
       .select('*')
       .eq('id', params.id)

@@ -46,19 +46,14 @@ export async function POST(req: Request) {
       max_tokens: 1000,
       messages: [
         {
-          role: "system",
+          role: "user",
           content: `You are a meme expert. Given a list of meme templates and a user's prompt, 
           select the most appropriate template and generate a fitting caption. 
           Respond with valid JSON in this exact format:
           {
-            "template": {
-              "id": "(id of the selected template)",
-              "name": "(name of the template)",
-              "video_url": "(url of the template video)"
-            },
-            "caption": "(your generated caption)"
-          }
-          Available templates: ${JSON.stringify(templates)}`
+            "templateId": "number",
+            "caption": "string"
+          }`
         },
         {
           role: "user",

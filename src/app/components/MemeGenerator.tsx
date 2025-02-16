@@ -6,11 +6,13 @@ import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
+import { createMemeVideo } from '@/lib/utils/videoProcessor';
 
 export default function MemeGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   
   const handleAISelection = (template: MemeTemplate, aiCaption: string) => {
     setSelectedTemplate(template);
@@ -22,34 +24,36 @@ export default function MemeGenerator() {
     setCaption('');
   };
 
-  const handleGenerateMeme = async () => {
+  const handleDownloadMeme = async () => {
     if (!selectedTemplate || !caption.trim()) {
       toast.error('Please provide a caption for your meme');
       return;
     }
 
-    setIsGenerating(true);
+    setIsDownloading(true);
     try {
-      const memeId = uuidv4();
-      
-      const { error } = await supabase
-        .from('memes')
-        .insert({
-          id: memeId,
-          template_id: selectedTemplate.id,
-          caption,
-          video_url: selectedTemplate.video_url,
-          status: 'pending'
-        });
+      // Create the meme video
+      const videoBlob = await createMemeVideo(
+        selectedTemplate.video_url,
+        caption
+      );
 
-      if (error) throw error;
-      toast.success('Meme generation started!');
-      
+      // Create download link
+      const url = URL.createObjectURL(videoBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `meme-${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Meme downloaded successfully!');
     } catch (error) {
-      console.error('Error generating meme:', error);
-      toast.error('Failed to generate meme. Please try again.');
+      console.error('Error downloading meme:', error);
+      toast.error('Failed to download meme. Please try again.');
     } finally {
-      setIsGenerating(false);
+      setIsDownloading(false);
     }
   };
 
@@ -89,11 +93,11 @@ export default function MemeGenerator() {
             />
             
             <button
-              onClick={handleGenerateMeme}
-              disabled={isGenerating}
+              onClick={handleDownloadMeme}
+              disabled={isDownloading}
               className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
-              {isGenerating ? 'Generating...' : 'Generate Meme'}
+              {isDownloading ? 'Processing...' : 'Download Meme'}
             </button>
           </div>
         </div>

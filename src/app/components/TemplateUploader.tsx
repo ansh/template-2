@@ -2,100 +2,98 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import Image from 'next/image'
+import { toast } from 'react-hot-toast'
 
 export function TemplateUploader() {
   const [templateName, setTemplateName] = useState('')
   const [templateExplanation, setTemplateExplanation] = useState('')
   const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setPreview(URL.createObjectURL(selectedFile))
-    }
-  }
+  const [preview, setPreview] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file || !templateName) {
-      setError('Please provide both a template name and video')
-      return
-    }
-
     setLoading(true)
     setError(null)
 
     try {
-      console.log('Starting upload...')
-      
-      // Upload video to Supabase Storage
+      if (!file) {
+        throw new Error('Please select a video file')
+      }
+
+      // Handle file upload
       const filename = `${Date.now()}-${file.name}`
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('meme-templates')
-        .upload(filename, file, {
-          cacheControl: '3600',
-          contentType: file.type
-        })
+        .upload(filename, file)
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
-        throw uploadError
-      }
+      if (uploadError) throw uploadError
 
-      console.log('File uploaded successfully:', uploadData)
-
-      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('meme-templates')
         .getPublicUrl(uploadData.path)
 
-      console.log('Public URL:', publicUrl)
+      // Generate embedding from name and instructions
+      const textForEmbedding = `${templateName}. ${templateExplanation}`.trim()
+      const embeddingResponse = await fetch('/api/embeddings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textForEmbedding })
+      });
 
-      // Create database entry - with more detailed error logging
-      try {
-        const { data: dbData, error: dbError } = await supabase
-          .from('meme_templates')  // Make sure this matches your table name exactly
-          .insert({
-            name: templateName,
-            instructions: templateExplanation,
-            video_url: publicUrl
-          })
-          .select()
-          .single()
-
-        if (dbError) {
-          console.error('Database insertion error:', dbError)
-          throw dbError
-        }
-
-        console.log('Database entry created successfully:', dbData)
-
-        // Reset form
-        setFile(null)
-        setPreview('')
-        setTemplateName('')
-        setTemplateExplanation('')
-        alert('Template uploaded successfully!')
-      } catch (dbErr) {
-        console.error('Detailed database error:', dbErr)
-        // Don't throw here - we want to keep the uploaded file
-        setError('File uploaded but failed to create database entry')
+      if (!embeddingResponse.ok) {
+        throw new Error('Failed to generate embedding');
       }
+
+      const { embedding } = await embeddingResponse.json();
+
+      // Create database entry
+      const { error: dbError } = await supabase
+        .from('meme_templates')
+        .insert({
+          name: templateName,
+          instructions: templateExplanation,
+          video_url: publicUrl,
+          embedding
+        })
+
+      if (dbError) throw dbError
+
+      // Reset form
+      setFile(null)
+      setPreview('')
+      setTemplateName('')
+      setTemplateExplanation('')
+      toast.success('Template uploaded successfully!')
+
     } catch (err) {
       console.error('Error details:', err)
       setError(err instanceof Error ? err.message : 'An error occurred while uploading')
+      toast.error('Upload failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Video File</label>
+        <input
+          type="file"
+          accept="video/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) {
+              setFile(file)
+              setPreview(URL.createObjectURL(file))
+            }
+          }}
+          className="mt-1 block w-full"
+        />
+      </div>
+
       <div>
         <label htmlFor="templateName" className="block text-sm font-medium mb-2">
           Template Name
@@ -125,20 +123,6 @@ export function TemplateUploader() {
         />
       </div>
 
-      <div>
-        <label htmlFor="templateVideo" className="block text-sm font-medium mb-2">
-          Template Video
-        </label>
-        <input
-          id="templateVideo"
-          type="file"
-          onChange={handleFileChange}
-          className="w-full"
-          accept="video/*"
-          required
-        />
-      </div>
-
       {preview && (
         <div className="mb-4">
           <p className="text-sm font-medium mb-2">Preview:</p>
@@ -153,19 +137,17 @@ export function TemplateUploader() {
         </div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-
       <button
         type="submit"
-        disabled={loading}
-        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+        disabled={loading || !file || !templateName}
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400"
       >
         {loading ? 'Uploading...' : 'Upload Template'}
       </button>
+
+      {error && (
+        <div className="text-red-600 text-sm">{error}</div>
+      )}
     </form>
   )
 } 

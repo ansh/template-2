@@ -1,5 +1,5 @@
 import { AnthropicStream, StreamingTextResponse } from 'ai';
-import Anthropic, { Message } from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { MEME_SYSTEM_PROMPT } from '@/lib/utils/prompts';
 
 const anthropic = new Anthropic({
@@ -31,17 +31,8 @@ export async function POST(req: Request) {
 
     console.log('Anthropic response received');
     
-    // Create a transform stream to convert the Anthropic response format
-    const transformStream = new TransformStream({
-      transform(chunk, controller) {
-        if (chunk.type === 'message_delta') {
-          controller.enqueue(chunk.delta.text);
-        }
-      }
-    });
-
-    // Pipe the response through the transform stream
-    const stream = response.pipeThrough(transformStream);
+    // Use type assertion to handle the stream
+    const stream = AnthropicStream(response as any);
     
     return new StreamingTextResponse(stream);
   } catch (error) {

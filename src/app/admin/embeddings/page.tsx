@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { useState } from 'react';
@@ -35,7 +36,7 @@ export default function EmbeddingsPage() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Backfill Embeddings</h2>
         <p className="text-gray-600 mb-4">
-          Generate embeddings for all templates that don't have them yet.
+          Generate embeddings for all templates that don&apos;t have them yet.
         </p>
         
         <button

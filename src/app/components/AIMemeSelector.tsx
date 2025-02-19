@@ -13,10 +13,17 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [templates, setTemplates] = useState<MemeTemplate[]>([]);
+  const [selectedModel, setSelectedModel] = useState<'openai' | 'anthropic'>('anthropic');
 
   const { messages, append, isLoading: isChatLoading } = useChat({
-    api: '/api/openai/chat',
+    api: selectedModel === 'openai' ? '/api/openai/chat' : '/api/anthropic/chat',
+    onError: (error) => {
+      console.error('Chat error:', error);
+      setIsLoading(false);
+      alert('Error: ' + error.message);
+    },
     onFinish: async (message) => {
+      console.log('Chat finished:', message);
       setIsLoading(false);
       
       // Get the templates again to ensure we have fresh data
@@ -64,8 +71,7 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
       setTemplates(fetchedTemplates);
 
-      // Send both the prompt and templates to the AI
-      await append({
+      const result = await append({
         role: 'user',
         content: `I want to create a meme with this idea: "${prompt}"
 
@@ -81,8 +87,21 @@ Please:
 TEMPLATE: [template number]
 CAPTION: [your generated caption]`,
       });
+
+      console.log('AI response:', result); // Debug log
+
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in handleSubmit:', error);
+      setIsLoading(false);
+      // Show error to user
+      alert('Error generating meme: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent default to avoid newline
+      handleSubmit(e as any);
     }
   };
 
@@ -97,11 +116,27 @@ CAPTION: [your generated caption]`,
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500"
             rows={3}
-            placeholder="Describe what kind of meme you want to create..."
+            placeholder="Describe what kind of meme you want to create... (Press Enter to submit, Shift+Enter for new line)"
           />
         </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select AI Model
+          </label>
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value as 'openai' | 'anthropic')}
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="anthropic">Claude</option>
+            <option value="openai">GPT-4</option>
+          </select>
+        </div>
+
         <button
           type="submit"
           disabled={isLoading || !prompt.trim()}

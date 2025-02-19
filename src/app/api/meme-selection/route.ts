@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { generateEmbedding } from '@/lib/utils/embeddings';
+import { MemeTemplate } from '@/lib/supabase/types';
 
 // Use environment variables with error checking
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     const result = JSON.parse(content);
 
     // Find the selected template from our database
-    const selectedTemplate = templates.find(t => t.id === result.templateId);
+    const selectedTemplate = templates.find((t: MemeTemplate) => t.id === result.templateId);
 
     if (!selectedTemplate) {
       throw new Error('Selected template not found');

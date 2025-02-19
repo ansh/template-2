@@ -1,4 +1,4 @@
-import { AnthropicStream, StreamingTextResponse } from 'ai';
+import { StreamingTextResponse } from 'ai';
 import Anthropic from '@anthropic-ai/sdk';
 import { MEME_SYSTEM_PROMPT } from '@/lib/utils/prompts';
 
@@ -31,8 +31,21 @@ export async function POST(req: Request) {
 
     console.log('Anthropic response received');
     
-    // Use type assertion to handle the stream
-    const stream = AnthropicStream(response as any);
+    // Convert the Anthropic stream to a Web standard ReadableStream
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of response) {
+            if (chunk.type === 'content_block_delta') {
+              controller.enqueue(chunk.delta.text);
+            }
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
     
     return new StreamingTextResponse(stream);
   } catch (error) {

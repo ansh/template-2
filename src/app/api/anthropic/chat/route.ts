@@ -13,42 +13,68 @@ export async function POST(req: Request) {
     }
 
     const { messages } = await req.json();
-    console.log('Received messages:', messages);
 
-    const anthropicMessages = messages.map((message: any) => ({
-      role: message.role === 'user' ? 'user' : 'assistant',
-      content: message.content,
-    }));
-
-    const response = await anthropic.messages.create({
+    // First get the available templates from the last user message
+    const lastMessage = messages[messages.length - 1];
+    const templateMatches = lastMessage.content.match(/\d+\.\s+([^\n]+)/g);
+    
+    // Get a non-streaming response first
+    const nonStreamingResponse = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
-      messages: anthropicMessages,
-      stream: true,
+      messages: [{
+        role: 'user',
+        content: `Given these templates:
+${lastMessage.content}
+
+Select the best template number (1-${templateMatches?.length || 5}) and write a caption for it.
+Format your response EXACTLY like this:
+TEMPLATE: [number]
+CAPTION: [caption]`
+      }],
+      stream: false,
       max_tokens: 1024,
       temperature: 0.7,
       system: MEME_SYSTEM_PROMPT
     });
 
-    console.log('Anthropic response received');
-    
-    // Convert the Anthropic stream to a Web standard ReadableStream
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of response) {
-            // Check for text content in the delta
-            if (chunk.type === 'content_block_delta' && 'text' in chunk.delta) {
-              controller.enqueue(chunk.delta.text);
-            }
-          }
-          controller.close();
-        } catch (error) {
-          controller.error(error);
-        }
-      },
+    // Get the text content from the response
+    const content = nonStreamingResponse.content[0].type === 'text' 
+      ? nonStreamingResponse.content[0].text
+      : '';
+
+    console.log('Full response:', content);
+
+    // Extract template and caption
+    const templateMatch = content.match(/TEMPLATE:\s*(\d+)/i);
+    const captionMatch = content.match(/CAPTION:\s*(.+?)(?=\n|$)/i);
+
+    if (!templateMatch || !captionMatch) {
+      // If we can't parse the format, try to extract what we can
+      const numberMatch = content.match(/(\d+)/);
+      const number = numberMatch ? numberMatch[1] : '1';
+      const text = content.replace(/(\d+)/, '').trim();
+
+      // Create a response with what we could extract
+      const formattedResponse = {
+        template: parseInt(number),
+        caption: text
+      };
+
+      return new Response(JSON.stringify(formattedResponse), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Create a properly formatted response
+    const formattedResponse = {
+      template: parseInt(templateMatch[1]),
+      caption: captionMatch[1].trim()
+    };
+
+    return new Response(JSON.stringify(formattedResponse), {
+      headers: { 'Content-Type': 'application/json' }
     });
-    
-    return new StreamingTextResponse(stream);
+
   } catch (error) {
     console.error('Anthropic API error:', error);
     return new Response(

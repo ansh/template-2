@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useChat } from 'ai/react';
 import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';  // Import the Supabase client
+import { toast } from 'react-hot-toast';
 
 interface Props {
   onSelectTemplate: (template: MemeTemplate, caption: string) => void;
@@ -52,49 +53,59 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim() || isLoading) return;
+    if (!prompt.trim()) return;
 
     setIsLoading(true);
-    
     try {
-      // First, fetch a suitable template based on the prompt
-      const { data: fetchedTemplates, error } = await supabase
+      // First, get the templates
+      const { data: freshTemplates } = await supabase
         .from('meme_templates')
         .select('*')
         .limit(5);
 
-      if (error) throw error;
-      
-      if (!fetchedTemplates || fetchedTemplates.length === 0) {
-        throw new Error('No templates found');
+      if (!freshTemplates || freshTemplates.length === 0) {
+        throw new Error('No templates available');
       }
 
-      setTemplates(fetchedTemplates);
+      setTemplates(freshTemplates);
 
-      const result = await append({
-        role: 'user',
-        content: `I want to create a meme with this idea: "${prompt}"
+      // Format the templates for the AI
+      const templatesText = freshTemplates.map((template, i) => 
+        `${i + 1}. ${template.name}\nInstructions: ${template.instructions || 'No specific instructions'}`
+      ).join('\n');
 
-Available templates:
-${fetchedTemplates.map((template, i) => `
-${i + 1}. ${template.name}
-Instructions: ${template.instructions || 'No specific instructions'}`).join('\n')}
-
-Please:
-1. Select the most suitable template from the list above (give me the number)
-2. Generate a funny caption that would work well with that template, following its instructions if provided
-3. Format your response exactly like this:
-TEMPLATE: [template number]
-CAPTION: [your generated caption]`,
+      // Make the API call
+      const response = await fetch('/api/anthropic/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: 'user',
+            content: `I want to create a meme with this idea: "${prompt}"\n\nAvailable templates:\n${templatesText}`
+          }]
+        }),
       });
 
-      console.log('AI response:', result); // Debug log
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+      console.log('AI response:', data);
+
+      // Use the formatted response
+      const selectedTemplate = freshTemplates[data.template - 1];
+      if (selectedTemplate) {
+        onSelectTemplate(selectedTemplate, data.caption);
+      }
 
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
+      console.error('Chat error:', error);
+      toast.error('Failed to generate meme suggestion');
+    } finally {
       setIsLoading(false);
-      // Show error to user
-      alert('Error generating meme: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 

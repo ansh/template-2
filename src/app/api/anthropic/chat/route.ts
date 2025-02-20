@@ -8,8 +8,34 @@ const anthropic = new Anthropic({
 
 export async function POST(req: Request) {
   try {
+    // Add more detailed API key checking
     if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY is not set');
+      console.error('ANTHROPIC_API_KEY is missing in environment');
+      return new Response(
+        JSON.stringify({ 
+          error: 'ANTHROPIC_API_KEY is not configured',
+          details: 'Please check environment variables configuration'
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Test API key format
+    if (!process.env.ANTHROPIC_API_KEY.startsWith('sk-')) {
+      console.error('ANTHROPIC_API_KEY appears to be invalid');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid API key format',
+          details: 'The API key does not match the expected format'
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const { messages } = await req.json();
@@ -76,10 +102,26 @@ CAPTION: [caption]`
     });
 
   } catch (error) {
-    console.error('Anthropic API error:', error);
+    // Enhanced error logging
+    console.error('Anthropic API error details:', {
+      error: error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : error,
+      apiKeyExists: !!process.env.ANTHROPIC_API_KEY,
+      apiKeyLength: process.env.ANTHROPIC_API_KEY?.length || 0
+    });
+
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'An error occurred' }),
-      { status: 500 }
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'An error occurred',
+        details: 'Check server logs for more information'
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 } 

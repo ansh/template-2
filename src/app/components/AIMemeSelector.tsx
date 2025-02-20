@@ -103,7 +103,19 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
     } catch (error) {
       console.error('Chat error:', error);
-      toast.error('Failed to generate meme suggestion');
+      let errorMessage = 'Failed to generate meme suggestion';
+      
+      if (error instanceof Error) {
+        // If it's an API error response
+        try {
+          const errorData = await error.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch {
+          errorMessage = error.message || errorMessage;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

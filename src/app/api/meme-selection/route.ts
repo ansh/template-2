@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     console.log('Templates returned:', templates?.length);
-    console.log('Similarity scores:', templates?.map(t => ({
+    console.log('Similarity scores:', templates?.map((t: MemeTemplate & { similarity: number }) => ({
       name: t.name,
       similarity: t.similarity
     })));

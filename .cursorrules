@@ -7,16 +7,138 @@ You are an expert in TypeScript, Next.js App Router, React, and Tailwind. Follow
   - src/app/lib has all the other code like helpers, hooks, and contexts
 
 There are some pre-configured APIs in this template that can be used but only if required by the current project. These have already been created:
-- Firebase
-  - In src/lib/firebase there is a firebase.ts configuration file as well as firebaseUtils.ts for various utility functions when interacting with Firebase Database, Storage, and Authencation
-  - In src/lib/contexts there is an AuthContext.tsx file that has user authentication with Firebase set up with the onAuthStateChanged listener.
-  - In src/lib/hooks there is a useAuth.ts hook
+
+- Supabase
+  - src/lib/supabase has client.ts, server.ts, admin.ts, and types.ts for database operations
+  - Used for meme template storage and vector search functionality
+  - Handles all data persistence needs including user data and template management
+
 - OpenAI 
-  - src/app/api/openai has chat/route.ts which is a simple API calling streamText from openai using the Vercel AI library
+  - src/app/api/openai has chat/route.ts which is a simple API calling streamText from OpenAI using the Vercel AI library
+  - Also used for generating embeddings for template search
+
 - Anthropic
   - src/app/api/anthropic has chat/route.ts which is a simple API calling streamText from Anthropic using the Vercel AI library
+
 - Replicate
   - src/app/api/replicate has generate-image/route.ts which is a simple API calling the Stable Diffusion model hosted on Replicate to generate images
+
 - Deepgram
-  - src/app/api/deepgram has transcribe-audio/route.ts which is a simple API that returns the Deepgram API key to be used in the client side to transcribe audio in real-time.
-  - src/lib/contexts has a DeepgramContext.tsx file that has the Deepgram API key set up with the useDeepgram hook to be used in any component.
+  - src/app/api/deepgram has transcribe-audio/route.ts which is a simple API that returns the Deepgram API key to be used in the client side to transcribe audio in real-time
+  - src/lib/contexts has a DeepgramContext.tsx file that has the Deepgram API key set up with the useDeepgram hook to be used in any component
+
+# Project Overview: Full-Stack AI Template
+
+## Project Architecture
+This is a Next.js 14 application with multiple AI integrations, designed as a template for building AI-powered applications.
+
+### Core Technologies
+- Next.js 14 App Router
+- TypeScript
+- TailwindCSS
+- Vercel AI SDK
+- Multiple AI Providers (OpenAI, Anthropic, Replicate)
+- Supabase (for data persistence, template storage and vector search)
+- Deepgram (for voice transcription)
+
+### Directory Structure
+- `/src`
+  - `/app` - Next.js app router pages and API routes
+    - `/api` - API endpoints for AI services
+    - `/components` - React components
+  - `/lib` - Utility functions, hooks, and contexts
+    - `/contexts` - React contexts (Deepgram)
+    - `/supabase` - Supabase client and types
+    - `/utils` - Helper functions
+
+## Current Features
+
+### 1. AI Chat Integration
+- Supports both OpenAI and Anthropic models
+- Streaming responses using Vercel AI SDK
+- Model selection toggle
+- Chat history management
+
+### 2. Image Generation
+- Replicate API integration for Stable Diffusion
+- Image download functionality
+- Gallery of generated images
+- Advanced generation options
+
+### 3. Voice Notes
+- Real-time voice recording with Deepgram
+- Automatic transcription
+- Supabase storage integration
+- Note management system
+
+### 4. Meme Generator
+- AI-powered template selection
+- Caption generation
+- Video processing with canvas
+- Template management system
+
+## Development Guidelines
+
+### 1. API Routes
+- Place in `/src/app/api`
+- Use proper error handling and typing
+- Implement rate limiting where appropriate
+- Return consistent response formats
+
+### 2. Components
+- Keep components focused and modular
+- Use TypeScript interfaces for props
+- Implement proper loading states
+- Handle errors gracefully
+- Use Tailwind for styling
+
+### 3. State Management
+- Use React Context for global state
+- Implement proper TypeScript types
+- Handle loading and error states
+- Use local storage for persistence where appropriate
+
+### 4. AI Integration
+- Use Vercel AI SDK for streaming responses
+- Implement proper error handling
+- Handle rate limits and API failures
+- Cache responses where appropriate
+
+### 5. Database Operations
+- Use Supabase for all data persistence
+- Implement proper error handling
+- Use TypeScript types for data models
+- Utilize vector embeddings for template search
+
+## Testing Guidelines
+- Implement unit tests for utilities
+- Add integration tests for API routes
+- Test error handling
+- Verify AI integration functionality
+
+## Current Focus Areas
+1. Improving meme generator functionality
+2. Enhancing AI template selection
+3. Optimizing video processing
+4. Adding user authentication
+5. Implementing proper error handling
+
+## Known Issues
+1. Video processing performance needs optimization
+2. Template selection accuracy needs improvement
+3. Error handling needs standardization
+4. Loading states need refinement
+
+## Future Enhancements
+1. Add user authentication
+2. Implement template sharing
+3. Add more AI models
+4. Improve performance optimization
+5. Add comprehensive testing
+
+Remember to:
+- Follow TypeScript best practices
+- Implement proper error handling
+- Use consistent code formatting
+- Document new features and changes
+- Test thoroughly before deployment

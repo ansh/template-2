@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useDeepgram } from '../lib/contexts/DeepgramContext';
-import { addDocument } from '../lib/firebase/firebaseUtils';
+import { supabase } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
 
 export default function VoiceRecorder() {
@@ -18,12 +18,18 @@ export default function VoiceRecorder() {
     disconnectFromDeepgram();
     setIsRecording(false);
     
-    // Save the note to Firebase
+    // Save the note to Supabase instead of Firebase
     if (realtimeTranscript) {
-      await addDocument('notes', {
-        text: realtimeTranscript,
-        timestamp: new Date().toISOString(),
-      });
+      const { error } = await supabase
+        .from('voice_notes')
+        .insert({
+          text: realtimeTranscript,
+          created_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error saving note:', error);
+      }
     }
   };
 

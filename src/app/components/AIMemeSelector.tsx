@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useChat } from 'ai/react';
+import { useChat, Message } from 'ai/react';
 import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';  // Import the Supabase client
 import { toast } from 'react-hot-toast';
 
 interface Props {
   onSelectTemplate: (template: MemeTemplate, caption: string) => void;
+}
+
+interface AIResponse {
+  template: number;
+  caption: string;
 }
 
 export default function AIMemeSelector({ onSelectTemplate }: Props) {
@@ -18,12 +23,12 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
   const { messages, append, isLoading: isChatLoading } = useChat({
     api: selectedModel === 'openai' ? '/api/openai/chat' : '/api/anthropic/chat',
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Chat error:', error);
       setIsLoading(false);
       alert('Error: ' + error.message);
     },
-    onFinish: async (message) => {
+    onFinish: async (message: Message) => {
       console.log('Chat finished:', message);
       setIsLoading(false);
       
@@ -71,11 +76,11 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         throw new Error(errorData.error || errorData.details || 'Failed to get templates');
       }
 
-      const { templates } = await response.json();
-      setTemplates(templates);
+      const { templates: fetchedTemplates } = await response.json();
+      setTemplates(fetchedTemplates);
 
       // Format the templates for the AI
-      const templatesText = templates.map((template, i) => 
+      const templatesText = fetchedTemplates.map((template: MemeTemplate, i: number) => 
         `${i + 1}. ${template.name}\nInstructions: ${template.instructions || 'No specific instructions'}`
       ).join('\n');
 
@@ -98,11 +103,11 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         throw new Error(errorData.error || errorData.details || 'Failed to get AI response');
       }
 
-      const data = await aiResponse.json();
+      const data = await aiResponse.json() as AIResponse;
       console.log('AI response:', data);
 
       // Use the formatted response
-      const selectedTemplate = templates[data.template - 1];
+      const selectedTemplate = fetchedTemplates[data.template - 1];
       if (selectedTemplate) {
         onSelectTemplate(selectedTemplate, data.caption);
       }
@@ -123,8 +128,8 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Prevent default to avoid newline
-      handleSubmit(e as any);
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -172,12 +177,12 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
       {messages.length > 0 && (
         <div className="mt-4 p-4 border rounded-lg bg-gray-50">
           <h3 className="font-medium mb-2">AI Suggestions:</h3>
-          {messages.map((message, index) => {
+          {messages.map((message: Message, index: number) => {
             if (message.role === 'assistant') {
               const templateMatch = message.content.match(/TEMPLATE: (\d+)/);
               const captionMatch = message.content.match(/CAPTION: (.+)/);
               
-              if (templateMatch && captionMatch && templates) {
+              if (templateMatch && captionMatch && templates.length > 0) {
                 const template = templates[parseInt(templateMatch[1]) - 1];
                 const caption = captionMatch[1];
 

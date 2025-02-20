@@ -48,9 +48,10 @@ export function TemplateUploader() {
       }
 
       const { embedding } = await embeddingResponse.json();
+      console.log('Embedding to store:', embedding.length); // Should be 1536
 
       // Create database entry
-      const { error: dbError } = await supabase
+      const { error: dbError, data } = await supabase
         .from('meme_templates')
         .insert({
           name: templateName,
@@ -58,8 +59,15 @@ export function TemplateUploader() {
           video_url: publicUrl,
           embedding
         })
+        .select()
+        .single();
 
-      if (dbError) throw dbError
+      if (dbError) {
+        console.error('DB Error:', dbError);
+        throw dbError;
+      }
+
+      console.log('Stored template with embedding:', data);
 
       // Reset form
       setFile(null)

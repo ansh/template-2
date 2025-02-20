@@ -5,12 +5,14 @@ const openai = new OpenAI({
 });
 
 export async function generateEmbedding(text: string) {
+  // Call OpenAI directly from server-side code instead of making a fetch request
   const response = await openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
     encoding_format: "float",
   });
 
+  console.log('Generated embedding length:', response.data[0].embedding.length); // Should be 1536
   return response.data[0].embedding;
 }
 

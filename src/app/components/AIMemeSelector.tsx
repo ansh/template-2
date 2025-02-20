@@ -57,25 +57,30 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
     setIsLoading(true);
     try {
-      // First, get the templates
-      const { data: freshTemplates } = await supabase
-        .from('meme_templates')
-        .select('*')
-        .limit(5);
+      // First, get relevant templates using vector similarity
+      const response = await fetch('/api/meme-selection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
 
-      if (!freshTemplates || freshTemplates.length === 0) {
-        throw new Error('No templates available');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.details || 'Failed to get templates');
       }
 
-      setTemplates(freshTemplates);
+      const { templates } = await response.json();
+      setTemplates(templates);
 
       // Format the templates for the AI
-      const templatesText = freshTemplates.map((template, i) => 
+      const templatesText = templates.map((template, i) => 
         `${i + 1}. ${template.name}\nInstructions: ${template.instructions || 'No specific instructions'}`
       ).join('\n');
 
-      // Make the API call
-      const response = await fetch('/api/anthropic/chat', {
+      // Make the AI selection call
+      const aiResponse = await fetch('/api/anthropic/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,16 +93,16 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!aiResponse.ok) {
+        const errorData = await aiResponse.json();
         throw new Error(errorData.error || errorData.details || 'Failed to get AI response');
       }
 
-      const data = await response.json();
+      const data = await aiResponse.json();
       console.log('AI response:', data);
 
       // Use the formatted response
-      const selectedTemplate = freshTemplates[data.template - 1];
+      const selectedTemplate = templates[data.template - 1];
       if (selectedTemplate) {
         onSelectTemplate(selectedTemplate, data.caption);
       }

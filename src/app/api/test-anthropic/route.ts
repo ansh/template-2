@@ -1,5 +1,31 @@
 import { NextResponse } from 'next/server';
 
+// Add interface for Anthropic API response
+interface AnthropicMessage {
+  role: string;
+  content: Array<{
+    type: string;
+    text: string;
+  }>;
+}
+
+interface AnthropicResponse {
+  id: string;
+  type: string;
+  role: string;
+  content: Array<{
+    type: string;
+    text: string;
+  }>;
+  model: string;
+  stop_reason: string | null;
+  stop_sequence: string | null;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
+
 export async function GET() {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   
@@ -26,16 +52,19 @@ export async function GET() {
       body: JSON.stringify(requestBody)
     });
 
-    const data = await response.json();
+    const data = await response.json() as AnthropicResponse;
     console.log('Response status:', response.status);
 
     if (!response.ok) {
       throw new Error(`API Error: ${response.status} ${JSON.stringify(data)}`);
     }
 
+    // Safely access the content array
+    const messageText = data.content[0]?.text ?? '';
+
     return NextResponse.json({
       success: true,
-      response: data.content[0].text,
+      response: messageText,
       fullResponse: data
     });
 

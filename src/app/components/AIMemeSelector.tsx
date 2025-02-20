@@ -89,7 +89,8 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get AI response');
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.details || 'Failed to get AI response');
       }
 
       const data = await response.json();
@@ -106,13 +107,7 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
       let errorMessage = 'Failed to generate meme suggestion';
       
       if (error instanceof Error) {
-        // If it's an API error response
-        try {
-          const errorData = await error.json();
-          errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch {
-          errorMessage = error.message || errorMessage;
-        }
+        errorMessage = error.message;
       }
       
       toast.error(errorMessage);

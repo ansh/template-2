@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useChat, Message } from 'ai/react';
 import { MemeTemplate } from '@/lib/supabase/types';
-import { supabase } from '@/lib/supabase/client';  // Import the Supabase client
+import { supabase } from '@/lib/supabase/client';
 import { toast } from 'react-hot-toast';
 
 interface Props {
@@ -35,41 +34,6 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
   const [memeA, setMemeA] = useState<SelectedMeme | null>(null);
   const [memeB, setMemeB] = useState<SelectedMeme | null>(null);
   const [audience, setAudience] = useState('');
-
-  const { messages, append, isLoading: isChatLoading } = useChat({
-    api: selectedModel === 'openai' ? '/api/openai/chat' : '/api/anthropic/chat',
-    onError: (error: Error) => {
-      console.error('Chat error:', error);
-      setIsLoading(false);
-      alert('Error: ' + error.message);
-    },
-    onFinish: async (message: Message) => {
-      console.log('Chat finished:', message);
-      setIsLoading(false);
-      
-      // Get the templates again to ensure we have fresh data
-      const { data: freshTemplates } = await supabase
-        .from('meme_templates')
-        .select('*')
-        .limit(5);
-
-      if (!freshTemplates) return;
-      setTemplates(freshTemplates);
-
-      // Parse the AI response
-      const templateMatch = message.content.match(/TEMPLATE: (\d+)/);
-      const captionMatch = message.content.match(/CAPTION: (.+)/);
-
-      if (templateMatch && captionMatch) {
-        const selectedTemplate = freshTemplates[parseInt(templateMatch[1]) - 1];
-        const caption = captionMatch[1];
-        
-        if (selectedTemplate) {
-          onSelectTemplate(selectedTemplate, caption);
-        }
-      }
-    },
-  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +132,11 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         });
         throw new Error('Failed to find one or both templates');
       }
+
+      console.log('Setting memes with captions:', {
+        memeA: { template: templateA, captions: dataA.captions },
+        memeB: { template: templateB, captions: dataB.captions }
+      });
 
       setMemeA({
         template: templateA,

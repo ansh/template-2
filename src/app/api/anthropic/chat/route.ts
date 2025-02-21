@@ -119,19 +119,24 @@ Select the best template number (1-${templateMatches?.length || 5}) and write TH
       t.number === selectedTemplateNumber
     )?.name;
 
-    const caption1Match = content.match(/CAPTION1:\s*(.+?)(?=\n|$)/i);
-    const caption2Match = content.match(/CAPTION2:\s*(.+?)(?=\n|$)/i);
-    const caption3Match = content.match(/CAPTION3:\s*(.+?)(?=\n|$)/i);
+    // Updated caption parsing to handle numbered list format
+    const captions = content
+      .split('\n')
+      .map(line => line.trim())
+      // Match lines that start with a number followed by a dot and possibly quotes
+      .filter(line => /^\d+\.\s*"?.+?"?$/.test(line))
+      .map(line => {
+        // Remove number prefix, dots, and quotes
+        return line.replace(/^\d+\.\s*"|"$/g, '').trim();
+      });
+
+    console.log('Parsed captions:', captions);
 
     // Create a properly formatted response
     const formattedResponse = {
       template: selectedTemplateNumber,
-      templateName: selectedTemplateName, // Add this for debugging
-      captions: [
-        caption1Match?.[1].trim() || '',
-        caption2Match?.[1].trim() || '',
-        caption3Match?.[1].trim() || ''
-      ],
+      templateName: selectedTemplateName,
+      captions: captions.length > 0 ? captions : ['No captions found'], // Fallback
       source: promptType
     };
 

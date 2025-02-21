@@ -1,6 +1,6 @@
 import { StreamingTextResponse } from 'ai';
 import Anthropic from '@anthropic-ai/sdk';
-import { MEME_SYSTEM_PROMPT } from '@/lib/utils/prompts';
+import { getMemeSystemPromptA, getMemeSystemPromptB } from '@/lib/utils/prompts';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
@@ -39,12 +39,23 @@ export async function POST(req: Request) {
     }
 
     const { messages } = await req.json();
-
-    // First get the available templates from the last user message
     const lastMessage = messages[messages.length - 1];
-    const templateMatches = lastMessage.content.match(/\d+\.\s+([^\n]+)/g);
-    
-    // Get a non-streaming response first
+    const promptType = lastMessage.promptType || 'A';
+    const audience = lastMessage.audience || 'general audience'; // Default fallback
+
+    // Get the appropriate system prompt based on type
+    const systemPrompt = promptType === 'A' 
+      ? getMemeSystemPromptA(audience) 
+      : getMemeSystemPromptB(audience);
+
+    // Extract template numbers and names for debugging
+    const templateMatches = lastMessage.content.match(/(\d+)\.\s+([^\n]+)/g);
+    const templateDetails = templateMatches?.map(match => {
+      const [_, number, name] = match.match(/(\d+)\.\s+(.+)/) || [];
+      return { number: parseInt(number), name };
+    });
+
+    // Get a non-streaming response with multiple captions
     const nonStreamingResponse = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       messages: [{
@@ -52,50 +63,70 @@ export async function POST(req: Request) {
         content: `Given these templates:
 ${lastMessage.content}
 
-Select the best template number (1-${templateMatches?.length || 5}) and write a caption for it.
-Format your response EXACTLY like this:
-TEMPLATE: [number]
-CAPTION: [caption]`
+Select the best template number (1-${templateMatches?.length || 5}) and write THREE different captions for it.`
       }],
       stream: false,
       max_tokens: 1024,
       temperature: 0.7,
-      system: MEME_SYSTEM_PROMPT
+      system: systemPrompt
     });
 
-    // Get the text content from the response
     const content = nonStreamingResponse.content[0].type === 'text' 
       ? nonStreamingResponse.content[0].text
       : '';
 
-    console.log('Full response:', content);
+    console.log('=== DEBUG: Template Selection ===');
+    console.log('Raw AI Response:', content);
+    
+    // Try multiple regex patterns
+    const templatePatterns = [
+      /TEMPLATE:\s*(\d+)/i,
+      /Template\s+(\d+)/i,
+      /Template\s+#(\d+)/i,
+      /using\s+Template\s+(\d+)/i,
+      /selected\s+Template\s+(\d+)/i,
+      /choose\s+Template\s+(\d+)/i
+    ];
 
-    // Extract template and caption
-    const templateMatch = content.match(/TEMPLATE:\s*(\d+)/i);
-    const captionMatch = content.match(/CAPTION:\s*(.+?)(?=\n|$)/i);
+    let selectedTemplateNumber = 1;
+    let matchedPattern = null;
 
-    if (!templateMatch || !captionMatch) {
-      // If we can't parse the format, try to extract what we can
-      const numberMatch = content.match(/(\d+)/);
-      const number = numberMatch ? numberMatch[1] : '1';
-      const text = content.replace(/(\d+)/, '').trim();
-
-      // Create a response with what we could extract
-      const formattedResponse = {
-        template: parseInt(number),
-        caption: text
-      };
-
-      return new Response(JSON.stringify(formattedResponse), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+    for (const pattern of templatePatterns) {
+      const match = content.match(pattern);
+      if (match) {
+        selectedTemplateNumber = parseInt(match[1]);
+        matchedPattern = pattern.toString();
+        break;
+      }
     }
+
+    console.log('Template Selection Debug:', {
+      matchedPattern,
+      selectedTemplateNumber,
+      availableTemplates: templateDetails,
+      promptType: promptType
+    });
+
+    // Find the template name for debugging
+    const selectedTemplateName = templateDetails?.find(t => t.number === selectedTemplateNumber)?.name;
+
+    const caption1Match = content.match(/CAPTION1:\s*(.+?)(?=\n|$)/i);
+    const caption2Match = content.match(/CAPTION2:\s*(.+?)(?=\n|$)/i);
+    const caption3Match = content.match(/CAPTION3:\s*(.+?)(?=\n|$)/i);
 
     // Create a properly formatted response
     const formattedResponse = {
-      template: parseInt(templateMatch[1]),
-      caption: captionMatch[1].trim()
+      template: selectedTemplateNumber,
+      templateName: selectedTemplateName, // Add this for debugging
+      captions: [
+        caption1Match?.[1].trim() || '',
+        caption2Match?.[1].trim() || '',
+        caption3Match?.[1].trim() || ''
+      ],
+      source: promptType
     };
+
+    console.log('Formatted response:', formattedResponse);
 
     return new Response(JSON.stringify(formattedResponse), {
       headers: { 'Content-Type': 'application/json' }

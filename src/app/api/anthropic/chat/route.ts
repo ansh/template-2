@@ -2,6 +2,12 @@ import { StreamingTextResponse } from 'ai';
 import Anthropic from '@anthropic-ai/sdk';
 import { getMemeSystemPromptA, getMemeSystemPromptB } from '@/lib/utils/prompts';
 
+// Add interface at the top of the file
+interface TemplateDetail {
+  number: number;
+  name: string;
+}
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
@@ -50,9 +56,10 @@ export async function POST(req: Request) {
 
     // Extract template numbers and names for debugging
     const templateMatches = lastMessage.content.match(/(\d+)\.\s+([^\n]+)/g);
-    const templateDetails = templateMatches?.map(match => {
-      const [_, number, name] = match.match(/(\d+)\.\s+(.+)/) || [];
-      return { number: parseInt(number), name };
+    const templateDetails = templateMatches?.map((match: string) => {
+      const matchResult = match.match(/(\d+)\.\s+(.+)/);
+      const [_, number, name] = matchResult || ['', '', ''];
+      return { number: parseInt(number || '0'), name: name || '' };
     });
 
     // Get a non-streaming response with multiple captions
@@ -108,7 +115,9 @@ Select the best template number (1-${templateMatches?.length || 5}) and write TH
     });
 
     // Find the template name for debugging
-    const selectedTemplateName = templateDetails?.find(t => t.number === selectedTemplateNumber)?.name;
+    const selectedTemplateName = templateDetails?.find((t: TemplateDetail) => 
+      t.number === selectedTemplateNumber
+    )?.name;
 
     const caption1Match = content.match(/CAPTION1:\s*(.+?)(?=\n|$)/i);
     const caption2Match = content.match(/CAPTION2:\s*(.+?)(?=\n|$)/i);

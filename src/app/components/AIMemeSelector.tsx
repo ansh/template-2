@@ -22,6 +22,11 @@ interface SelectedMeme {
   captions: string[];
 }
 
+// Add type for template with indices
+interface TemplateWithIndex extends MemeTemplate {
+  originalIndex: number;
+}
+
 export default function AIMemeSelector({ onSelectTemplate }: Props) {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -90,14 +95,14 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
       
       // After getting templates from vector similarity
       console.log('=== DEBUG: Template Processing ===');
-      console.log('Original templates order:', fetchedTemplates.map(t => t.name));
+      console.log('Original templates order:', fetchedTemplates.map((t: MemeTemplate) => t.name));
       
       const templatesWithIndices = fetchedTemplates.map((template: MemeTemplate, index: number) => ({
         ...template,
         originalIndex: index + 1
       }));
       
-      console.log('Templates with indices:', templatesWithIndices.map(t => ({
+      console.log('Templates with indices:', templatesWithIndices.map((t: TemplateWithIndex) => ({
         name: t.name,
         originalIndex: t.originalIndex
       })));
@@ -154,7 +159,7 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
       if (!templateA || !templateB) {
         console.error('Template selection mismatch:', {
-          availableTemplates: templatesWithIndices.map(t => ({ 
+          availableTemplates: templatesWithIndices.map((t: TemplateWithIndex) => ({ 
             name: t.name, 
             index: t.originalIndex 
           })),

@@ -127,7 +127,7 @@ Select the best template number (1-${templateMatches?.length || 5}) and write TH
       .filter(line => /^\d+\.\s*"?.+?"?$/.test(line))
       .map(line => {
         // Remove number prefix, dots, and quotes
-        return line.replace(/^\d+\.\s*"|"$/g, '').trim();
+        return line.replace(/^\d+\.\s*|"|^\s*|\s*$/g, '').trim();
       });
 
     console.log('Parsed captions:', captions);

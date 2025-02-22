@@ -10,20 +10,28 @@ interface Props {
 }
 
 interface AIResponse {
-  template: number;
-  captions: string[];
-  source: 'A' | 'B';
-  templateName?: string;
+  templates: {
+    template: number;
+    captions: string[];
+  }[];
 }
 
 interface SelectedMeme {
-  template: MemeTemplate;
-  captions: string[];
+  templates: {
+    template: MemeTemplate;
+    captions: string[];
+  }[];
 }
 
 // Add type for template with indices
 interface TemplateWithIndex extends MemeTemplate {
   originalIndex: number;
+}
+
+// Add this interface to properly type the template data from AI
+interface TemplateResponse {
+  template: number;
+  captions: string[];
 }
 
 export default function AIMemeSelector({ onSelectTemplate }: Props) {
@@ -65,7 +73,7 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         `${template.originalIndex}. ${template.name}\nInstructions: ${template.instructions || 'No specific instructions'}`
       ).join('\n');
 
-      // Make single API call for template A
+      // Make API call for templates and captions
       const aiResponse = await fetch('/api/anthropic/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,24 +90,47 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         throw new Error('Failed to get AI response');
       }
 
-      const data = await aiResponse.json();
+      const data: AIResponse = await aiResponse.json();
+      
+      // Map both templates to their full data
+      const selectedTemplates = data.templates.map((templateData: TemplateResponse) => {
+        console.log('Looking for template number:', templateData.template);
+        console.log('Available templates:', templatesWithIndices.map((t: TemplateWithIndex) => ({
+          index: t.originalIndex,
+          name: t.name
+        })));
 
-      const template = templatesWithIndices.find(
-        (t: MemeTemplate & { originalIndex: number }) => t.originalIndex === data.template
-      );
+        const selectedTemplate = templatesWithIndices.find(
+          (t: TemplateWithIndex) => t.originalIndex === templateData.template
+        );
+        
+        if (!selectedTemplate) {
+          throw new Error(`Could not find template ${templateData.template}`);
+        }
 
-      if (!template) {
-        throw new Error('Failed to find template');
-      }
+        console.log('Found template:', selectedTemplate.name);
 
-      setMeme({
-        template: template,
-        captions: data.captions
+        return {
+          template: selectedTemplate,
+          captions: templateData.captions
+        };
       });
 
+      console.log('Selected templates:', selectedTemplates.map(t => ({
+        name: t.template.name,
+        captions: t.captions
+      })));
+
+      setMeme({
+        templates: selectedTemplates
+      });
+
+      // Don't automatically select a template/caption yet - let user choose
+      setTemplates(templatesWithIndices);
+
     } catch (error) {
-      console.error('Chat error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate meme suggestion');
+      console.error('Error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate meme');
     } finally {
       setIsLoading(false);
     }
@@ -169,36 +200,38 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
       </form>
 
       {meme && !isLoading && (
-        <div className="mt-4">
-          <div className="p-4 border rounded-lg bg-gray-50">
-            <h3 className="font-medium mb-4">{meme.template.name}</h3>
-            
-            {/* Caption options */}
-            <div className="space-y-3 mb-6">
-              <h4 className="font-medium text-blue-600">Captions:</h4>
-              {meme.captions.map((caption, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleCaptionSelect(meme.template, caption)}
-                  className="w-full p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
-                >
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">
-                    {index + 1}
-                  </span>
-                  <span>{caption}</span>
-                </button>
-              ))}
-            </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {meme.templates.map((templateData, templateIndex) => (
+            <div key={templateIndex} className="p-4 border rounded-lg bg-gray-50">
+              <h3 className="font-medium mb-4">{templateData.template.name}</h3>
+              
+              {/* Caption options */}
+              <div className="space-y-3 mb-6">
+                <h4 className="font-medium text-blue-600">Captions:</h4>
+                {templateData.captions.map((caption, captionIndex) => (
+                  <button
+                    key={captionIndex}
+                    onClick={() => handleCaptionSelect(templateData.template, caption)}
+                    className="w-full p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
+                  >
+                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">
+                      {captionIndex + 1}
+                    </span>
+                    <span>{caption}</span>
+                  </button>
+                ))}
+              </div>
 
-            {/* Video preview */}
-            <div className="border rounded-lg overflow-hidden">
-              <video 
-                src={meme.template.video_url}
-                className="w-full aspect-video object-cover"
-                controls
-              />
+              {/* Video preview */}
+              <div className="border rounded-lg overflow-hidden">
+                <video 
+                  src={templateData.template.video_url}
+                  className="w-full aspect-video object-cover"
+                  controls
+                />
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       )}
     </div>

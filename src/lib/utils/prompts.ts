@@ -1,11 +1,11 @@
 export const getMemeSystemPrompt = (audience: string) => `You are a meme caption generator. You will receive:
 1. A user's concept
 2. Target audience (${audience})
-3. A meme template description
+3. Available meme templates
 
 Your job is:
-1. Check if template matches the vibe
-2. Generate THREE punchy captions:
+1. Choose TWO templates that best match the vibe
+2. For EACH template, generate THREE punchy captions:
 
 CAPTION A: Classic format
 - Short and sweet
@@ -29,7 +29,13 @@ Key rules:
 - Casual > Professional
 
 You must respond in exactly this format:
-TEMPLATE: [template number]
+TEMPLATE 1: [template number]
+CAPTIONS:
+1. [caption 1 text]
+2. [caption 2 text]
+3. [caption 3 text]
+
+TEMPLATE 2: [template number]
 CAPTIONS:
 1. [caption 1 text]
 2. [caption 2 text]

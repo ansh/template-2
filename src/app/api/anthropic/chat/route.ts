@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         content: `Given these templates:
 ${lastMessage.content}
 
-Select the best template number (1-${templateMatches?.length || 5}) and write THREE different captions for it.`
+Select TWO best templates and write THREE different captions for each.`
       }],
       stream: false,
       max_tokens: 1024,
@@ -81,62 +81,46 @@ Select the best template number (1-${templateMatches?.length || 5}) and write TH
     console.log('=== DEBUG: Template Selection ===');
     console.log('Raw AI Response:', content);
     
-    // Try multiple regex patterns
-    const templatePatterns = [
-      /TEMPLATE:\s*(\d+)/i,
-      /Template\s+(\d+)/i,
-      /Template\s+#(\d+)/i,
-      /using\s+Template\s+(\d+)/i,
-      /selected\s+Template\s+(\d+)/i,
-      /choose\s+Template\s+(\d+)/i
-    ];
+    // Updated parsing logic to handle two templates
+    const templates = content.split(/TEMPLATE [12]:/g).filter(Boolean);
+    
+    console.log('Split templates:', templates);
 
-    let selectedTemplateNumber = 1;
-    let matchedPattern = null;
+    const results = templates.map((template, index) => {
+      // First try to find the template name in the first line
+      const firstLine = template.trim().split('\n')[0];
+      console.log('First line:', firstLine);
 
-    for (const pattern of templatePatterns) {
-      const match = content.match(pattern);
-      if (match) {
-        selectedTemplateNumber = parseInt(match[1]);
-        matchedPattern = pattern.toString();
-        break;
-      }
-    }
+      // Find the matching template from our template details
+      const matchingTemplate = templateDetails?.find((t: TemplateDetail) => 
+        firstLine.toLowerCase().includes(t.name.toLowerCase())
+      );
 
-    console.log('Template Selection Debug:', {
-      matchedPattern,
-      selectedTemplateNumber,
-      availableTemplates: templateDetails,
-    });
-
-    // Find the template name for debugging
-    const selectedTemplateName = templateDetails?.find((t: TemplateDetail) => 
-      t.number === selectedTemplateNumber
-    )?.name;
-
-    // Updated caption parsing to handle numbered list format
-    const captions = content
-      .split('\n')
-      .map(line => line.trim())
-      // Match lines that start with a number followed by a dot and possibly quotes
-      .filter(line => /^\d+\.\s*"?.+?"?$/.test(line))
-      .map(line => {
-        // Remove number prefix, dots, and quotes
-        return line.replace(/^\d+\.\s*|"|^\s*|\s*$/g, '').trim();
+      const templateNumber = matchingTemplate?.number || index + 1;
+      
+      console.log('Template matching:', {
+        firstLine,
+        matchingTemplate,
+        templateNumber
       });
 
-    console.log('Parsed captions:', captions);
+      const captions = template
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => /^\d+\.\s*"?.+?"?$/.test(line))
+        .map(line => line.replace(/^\d+\.\s*|"|^\s*|\s*$/g, '').trim());
 
-    // Create a properly formatted response
-    const formattedResponse = {
-      template: selectedTemplateNumber,
-      templateName: selectedTemplateName,
-      captions: captions.length > 0 ? captions : ['No captions found'], // Fallback
-    };
+      return {
+        template: templateNumber,
+        captions: captions.length > 0 ? captions : ['No captions found']
+      };
+    });
 
-    console.log('Formatted response:', formattedResponse);
+    console.log('Final results:', results);
 
-    return new Response(JSON.stringify(formattedResponse), {
+    return new Response(JSON.stringify({
+      templates: results
+    }), {
       headers: { 'Content-Type': 'application/json' }
     });
 

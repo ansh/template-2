@@ -42,16 +42,16 @@ export default function MemeDatabase() {
       {templates.length === 0 ? (
         <p className="text-gray-600">No templates in database yet</p>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => (
             <div key={template.id} className="border rounded p-4">
               <h3 className="font-bold text-gray-900">{template.name}</h3>
               <video
                 src={template.video_url}
-                className="w-full mt-2"
+                className="w-full mt-2 aspect-video object-cover"
                 controls
               />
-              <p className="text-gray-600 mt-2">{template.instructions}</p>
+              <p className="text-gray-600 mt-2 line-clamp-2">{template.instructions}</p>
             </div>
           ))}
         </div>

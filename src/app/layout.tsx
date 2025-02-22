@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-gray-50">
         <Navigation />
-        <main className="container mx-auto px-4">
+        <main className="container mx-auto">
           {children}
         </main>
         <Toaster />

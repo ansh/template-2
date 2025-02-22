@@ -13,6 +13,9 @@ export default function Navigation() {
           <Link href="/" className="text-gray-600 hover:text-gray-900">
             Home
           </Link>
+          <Link href="/template-library" className="text-gray-600 hover:text-gray-900">
+            Template Library
+          </Link>
           <Link href="/upload" className="text-gray-600 hover:text-gray-900">
             Upload Template
           </Link>

@@ -12,7 +12,7 @@ export default function MemeGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   
   const handleAISelection = (template: MemeTemplate, aiCaption: string) => {
     setSelectedTemplate(template);
@@ -30,12 +30,16 @@ export default function MemeGenerator() {
       return;
     }
 
-    setIsDownloading(true);
+    setIsGenerating(true);
+    setDownloadProgress(0);
+    
     try {
-      // Create the meme video
       const videoBlob = await createMemeVideo(
         selectedTemplate.video_url,
-        caption
+        caption,
+        (progress) => {
+          setDownloadProgress(Math.round(progress));
+        }
       );
 
       // Create download link
@@ -53,7 +57,8 @@ export default function MemeGenerator() {
       console.error('Error downloading meme:', error);
       toast.error('Failed to download meme. Please try again.');
     } finally {
-      setIsDownloading(false);
+      setIsGenerating(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -94,10 +99,20 @@ export default function MemeGenerator() {
             
             <button
               onClick={handleDownloadMeme}
-              disabled={isDownloading}
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+              disabled={isGenerating}
+              className="relative w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300 transition-all"
             >
-              {isDownloading ? 'Processing...' : 'Download Meme'}
+              <div className="relative z-10">
+                {isGenerating ? `Processing ${downloadProgress}%` : 'Download Meme'}
+              </div>
+              
+              {/* Progress bar */}
+              {isGenerating && (
+                <div 
+                  className="absolute left-0 top-0 bottom-0 bg-blue-600 transition-all duration-300"
+                  style={{ width: `${downloadProgress}%` }}
+                />
+              )}
             </button>
           </div>
         </div>

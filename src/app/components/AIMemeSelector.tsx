@@ -31,8 +31,7 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [templates, setTemplates] = useState<MemeTemplate[]>([]);
   const [selectedModel, setSelectedModel] = useState<'openai' | 'anthropic'>('anthropic');
-  const [memeA, setMemeA] = useState<SelectedMeme | null>(null);
-  const [memeB, setMemeB] = useState<SelectedMeme | null>(null);
+  const [meme, setMeme] = useState<SelectedMeme | null>(null);
   const [audience, setAudience] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,94 +56,45 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
       const { templates: fetchedTemplates } = await response.json();
       
-      // After getting templates from vector similarity
-      console.log('=== DEBUG: Template Processing ===');
-      console.log('Original templates order:', fetchedTemplates.map((t: MemeTemplate) => t.name));
-      
       const templatesWithIndices = fetchedTemplates.map((template: MemeTemplate, index: number) => ({
         ...template,
         originalIndex: index + 1
       }));
-      
-      console.log('Templates with indices:', templatesWithIndices.map((t: TemplateWithIndex) => ({
-        name: t.name,
-        originalIndex: t.originalIndex
-      })));
 
-      // Format templates for AI with their original indices
       const templatesText = templatesWithIndices.map((template: MemeTemplate & { originalIndex: number }) => 
         `${template.originalIndex}. ${template.name}\nInstructions: ${template.instructions || 'No specific instructions'}`
       ).join('\n');
 
-      // Make two separate API calls for each prompt
-      const [responseA, responseB] = await Promise.all([
-        fetch('/api/anthropic/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{
-              role: 'user',
-              content: `I want to create a meme with this idea: "${prompt}"\n\nAvailable templates:\n${templatesText}`,
-              promptType: 'A',
-              audience: audience || 'general audience'
-            }]
-          }),
+      // Make single API call for template A
+      const aiResponse = await fetch('/api/anthropic/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{
+            role: 'user',
+            content: `I want to create a meme with this idea: "${prompt}"\n\nAvailable templates:\n${templatesText}`,
+            audience: audience || 'general audience'
+          }]
         }),
-        fetch('/api/anthropic/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{
-              role: 'user',
-              content: `I want to create a meme with this idea: "${prompt}"\n\nAvailable templates:\n${templatesText}`,
-              promptType: 'B',
-              audience: audience || 'general audience'
-            }]
-          }),
-        })
-      ]);
-
-      if (!responseA.ok || !responseB.ok) {
-        throw new Error('Failed to get AI responses');
-      }
-
-      const [dataA, dataB] = await Promise.all([
-        responseA.json() as Promise<AIResponse>,
-        responseB.json() as Promise<AIResponse>
-      ]);
-
-      // Find templates for both responses
-      const templateA = templatesWithIndices.find(
-        (t: MemeTemplate & { originalIndex: number }) => t.originalIndex === dataA.template
-      );
-      const templateB = templatesWithIndices.find(
-        (t: MemeTemplate & { originalIndex: number }) => t.originalIndex === dataB.template
-      );
-
-      if (!templateA || !templateB) {
-        console.error('Template selection mismatch:', {
-          availableTemplates: templatesWithIndices.map((t: TemplateWithIndex) => ({ 
-            name: t.name, 
-            index: t.originalIndex 
-          })),
-          requestedTemplateA: dataA.template,
-          requestedTemplateB: dataB.template,
-        });
-        throw new Error('Failed to find one or both templates');
-      }
-
-      console.log('Setting memes with captions:', {
-        memeA: { template: templateA, captions: dataA.captions },
-        memeB: { template: templateB, captions: dataB.captions }
       });
 
-      setMemeA({
-        template: templateA,
-        captions: dataA.captions
-      });
-      setMemeB({
-        template: templateB,
-        captions: dataB.captions
+      if (!aiResponse.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await aiResponse.json();
+
+      const template = templatesWithIndices.find(
+        (t: MemeTemplate & { originalIndex: number }) => t.originalIndex === data.template
+      );
+
+      if (!template) {
+        throw new Error('Failed to find template');
+      }
+
+      setMeme({
+        template: template,
+        captions: data.captions
       });
 
     } catch (error) {
@@ -218,73 +168,37 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         </button>
       </form>
 
-      {(memeA || memeB) && !isLoading && (
-        <div className="mt-4 space-y-8">
-          {/* Style A Result */}
-          {memeA && (
-            <div className="p-4 border rounded-lg bg-gray-50">
-              <h3 className="font-medium mb-4">Style A: {memeA.template.name}</h3>
-              
-              {/* Caption options */}
-              <div className="space-y-3 mb-6">
-                <h4 className="font-medium text-blue-600">Captions:</h4>
-                {memeA.captions.map((caption, index) => (
-                  <button
-                    key={`A-${index}`}
-                    onClick={() => handleCaptionSelect(memeA.template, caption)}
-                    className="w-full p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
-                  >
-                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">
-                      {index + 1}
-                    </span>
-                    <span>{caption}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Video preview */}
-              <div className="border rounded-lg overflow-hidden">
-                <video 
-                  src={memeA.template.video_url}
-                  className="w-full aspect-video object-cover"
-                  controls
-                />
-              </div>
+      {meme && !isLoading && (
+        <div className="mt-4">
+          <div className="p-4 border rounded-lg bg-gray-50">
+            <h3 className="font-medium mb-4">{meme.template.name}</h3>
+            
+            {/* Caption options */}
+            <div className="space-y-3 mb-6">
+              <h4 className="font-medium text-blue-600">Captions:</h4>
+              {meme.captions.map((caption, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCaptionSelect(meme.template, caption)}
+                  className="w-full p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
+                >
+                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">
+                    {index + 1}
+                  </span>
+                  <span>{caption}</span>
+                </button>
+              ))}
             </div>
-          )}
 
-          {/* Style B Result */}
-          {memeB && (
-            <div className="p-4 border rounded-lg bg-gray-50">
-              <h3 className="font-medium mb-4">Style B: {memeB.template.name}</h3>
-              
-              {/* Caption options */}
-              <div className="space-y-3 mb-6">
-                <h4 className="font-medium text-green-600">Captions:</h4>
-                {memeB.captions.map((caption, index) => (
-                  <button
-                    key={`B-${index}`}
-                    onClick={() => handleCaptionSelect(memeB.template, caption)}
-                    className="w-full p-3 text-left border rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors flex items-center gap-2"
-                  >
-                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-100 text-green-600 text-sm">
-                      {index + 1}
-                    </span>
-                    <span>{caption}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Video preview */}
-              <div className="border rounded-lg overflow-hidden">
-                <video 
-                  src={memeB.template.video_url}
-                  className="w-full aspect-video object-cover"
-                  controls
-                />
-              </div>
+            {/* Video preview */}
+            <div className="border rounded-lg overflow-hidden">
+              <video 
+                src={meme.template.video_url}
+                className="w-full aspect-video object-cover"
+                controls
+              />
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

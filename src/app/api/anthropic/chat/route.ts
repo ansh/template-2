@@ -1,6 +1,6 @@
 import { StreamingTextResponse } from 'ai';
 import Anthropic from '@anthropic-ai/sdk';
-import { getMemeSystemPromptA, getMemeSystemPromptB } from '@/lib/utils/prompts';
+import { getMemeSystemPrompt } from '@/lib/utils/prompts';
 
 // Add interface at the top of the file
 interface TemplateDetail {
@@ -46,13 +46,9 @@ export async function POST(req: Request) {
 
     const { messages } = await req.json();
     const lastMessage = messages[messages.length - 1];
-    const promptType = lastMessage.promptType || 'A';
-    const audience = lastMessage.audience || 'general audience'; // Default fallback
+    const audience = lastMessage.audience || 'general audience';
 
-    // Get the appropriate system prompt based on type
-    const systemPrompt = promptType === 'A' 
-      ? getMemeSystemPromptA(audience) 
-      : getMemeSystemPromptB(audience);
+    const systemPrompt = getMemeSystemPrompt(audience);
 
     // Extract template numbers and names for debugging
     const templateMatches = lastMessage.content.match(/(\d+)\.\s+([^\n]+)/g);
@@ -111,7 +107,6 @@ Select the best template number (1-${templateMatches?.length || 5}) and write TH
       matchedPattern,
       selectedTemplateNumber,
       availableTemplates: templateDetails,
-      promptType: promptType
     });
 
     // Find the template name for debugging
@@ -137,7 +132,6 @@ Select the best template number (1-${templateMatches?.length || 5}) and write TH
       template: selectedTemplateNumber,
       templateName: selectedTemplateName,
       captions: captions.length > 0 ? captions : ['No captions found'], // Fallback
-      source: promptType
     };
 
     console.log('Formatted response:', formattedResponse);

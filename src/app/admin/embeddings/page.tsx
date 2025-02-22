@@ -30,31 +30,36 @@ export default function EmbeddingsPage() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Manage Template Embeddings</h1>
-      
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Backfill Embeddings</h2>
-        <p className="text-gray-600 mb-4">
-          Generate embeddings for all templates that don&apos;t have them yet.
+    <div className="py-8 md:py-12">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-4">Manage Template Embeddings</h1>
+        <p className="text-gray-600 mb-8">
+          Update and manage AI embeddings for template search and matching functionality.
         </p>
         
-        <button
-          onClick={handleBackfill}
-          disabled={isProcessing}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-        >
-          {isProcessing ? 'Processing...' : 'Start Backfill'}
-        </button>
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">Backfill Embeddings</h2>
+          <p className="text-gray-600 mb-6">
+            Generate embeddings for all templates that don't have them yet.
+          </p>
+          
+          <button
+            onClick={handleBackfill}
+            disabled={isProcessing}
+            className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 disabled:bg-blue-300 transition-colors"
+          >
+            {isProcessing ? 'Processing...' : 'Start Backfill'}
+          </button>
 
-        {results && (
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">Results:</h3>
-            <pre className="bg-gray-100 p-4 rounded overflow-auto">
-              {JSON.stringify(results, null, 2)}
-            </pre>
-          </div>
-        )}
+          {results && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-3">Results:</h3>
+              <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-sm">
+                {JSON.stringify(results, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

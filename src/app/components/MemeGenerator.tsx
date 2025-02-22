@@ -89,6 +89,7 @@ export default function MemeGenerator() {
                   placeholder="Enter your caption..."
                 />
               </div>
+
             </div>
 
             <video

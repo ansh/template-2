@@ -95,7 +95,7 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
       // Map both templates to their full data
       const selectedTemplates = data.templates.map((templateData: TemplateResponse) => {
         console.log('Looking for template number:', templateData.template);
-        console.log('Available templates:', templatesWithIndices.map(t => ({
+        console.log('Available templates:', templatesWithIndices.map((t: TemplateWithIndex) => ({
           index: t.originalIndex,
           name: t.name
         })));

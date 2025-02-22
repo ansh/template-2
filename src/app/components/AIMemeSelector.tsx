@@ -149,7 +149,6 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">AI Meme Generator</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

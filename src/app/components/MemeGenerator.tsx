@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
 import { BackgroundImage } from '@/lib/types/meme';
+import { createMemePreview } from '@/lib/utils/previewGenerator';
 
 // Import or define the SelectedMeme interface
 interface SelectedMeme {
@@ -36,6 +37,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
   const [selectedBackground, setSelectedBackground] = useState<BackgroundImage | null>(null);
   const [backgrounds, setBackgrounds] = useState<BackgroundImage[]>([]);
   const [isLoadingBackgrounds, setIsLoadingBackgrounds] = useState(false);
+  const [previewCanvas, setPreviewCanvas] = useState<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     async function loadBackgrounds() {
@@ -60,6 +62,12 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
       loadBackgrounds();
     }
   }, [isGreenscreenMode]);
+
+  useEffect(() => {
+    if (selectedTemplate && caption) {
+      updatePreview();
+    }
+  }, [selectedTemplate, caption, selectedBackground, isGreenscreenMode]);
 
   const handleAISelection = (template: MemeTemplate, aiCaption: string, allOptions: SelectedMeme) => {
     setSelectedTemplate(template);
@@ -108,6 +116,23 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
       toast.error('Failed to download meme. Please try again.');
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const updatePreview = async () => {
+    if (!selectedTemplate) return;
+    
+    try {
+      const canvas = await createMemePreview(
+        selectedTemplate.video_url,
+        caption,
+        selectedBackground?.url,
+        isGreenscreenMode
+      );
+      setPreviewCanvas(canvas);
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      toast.error('Failed to generate preview');
     }
   };
 
@@ -166,12 +191,30 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
               </div>
             )}
 
-            <video
-              ref={previewVideoRef}
-              src={selectedTemplate.video_url}
-              className="w-full aspect-video object-cover rounded mb-4"
-              controls
-            />
+            <div className="mb-4">
+              <h3 className="text-lg font-medium mb-2">Preview</h3>
+              <div className="relative aspect-[9/16] w-full">
+                {previewCanvas && (
+                  <div className="absolute inset-0">
+                    <img 
+                      src={previewCanvas.toDataURL()} 
+                      alt="Meme preview"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="text-lg font-medium mb-2">Original Video</h3>
+              <video
+                ref={previewVideoRef}
+                src={selectedTemplate.video_url}
+                className="w-full aspect-video object-cover rounded"
+                controls
+              />
+            </div>
             
             <button
               onClick={handleDownloadMeme}

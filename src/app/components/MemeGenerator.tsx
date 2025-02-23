@@ -45,11 +45,6 @@ export default function MemeGenerator() {
       return;
     }
 
-    // Pause the preview video before starting processing
-    if (previewVideoRef.current) {
-      previewVideoRef.current.pause();
-    }
-
     setIsDownloading(true);
     try {
       // Create the meme video
@@ -58,24 +53,15 @@ export default function MemeGenerator() {
         caption
       );
 
-      // Create download link
+      // Create download link and trigger download immediately
       const url = URL.createObjectURL(videoBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `meme-${Date.now()}.mp4`;
-      
-      // Use a timeout to ensure download starts after processing is complete
-      setTimeout(() => {
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        // Resume preview video if it exists
-        if (previewVideoRef.current) {
-          previewVideoRef.current.play();
-        }
-      }, 100);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
       toast.success('Meme downloaded successfully!');
     } catch (error) {

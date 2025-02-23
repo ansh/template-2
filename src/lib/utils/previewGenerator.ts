@@ -128,10 +128,10 @@ export async function createMemePreview(
 }
 
 // Helper function to wrap text (same as in videoProcessor.ts)
-function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   // Split text into lines based on user's line breaks first
   const userLines = text.split('\n');
-  const lines = [];
+  const lines: string[] = [];
 
   // Then handle word wrapping within each line
   userLines.forEach(userLine => {

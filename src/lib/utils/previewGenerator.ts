@@ -1,11 +1,22 @@
 import { TextSettings } from '@/lib/types/meme';
 
+// Add Label interface at the top
+interface Label {
+  id: string;
+  text: string;
+  horizontalPosition: number;
+  verticalPosition: number;
+  size: number;
+  font: string;
+}
+
 export async function createMemePreview(
   videoUrl: string,
   caption: string,
   backgroundImage?: string,
   isGreenscreen?: boolean,
-  textSettings?: TextSettings
+  textSettings?: TextSettings,
+  labels?: Label[]
 ): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
@@ -106,6 +117,29 @@ export async function createMemePreview(
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(line, x, y);
       });
+
+      // Draw labels
+      if (labels?.length) {
+        labels.forEach(label => {
+          if (!label.text.trim()) return;
+          
+          const x = canvas.width * (label.horizontalPosition / 100);
+          const y = canvas.height * (label.verticalPosition / 100);
+          
+          // Use label's size instead of caption size
+          ctx.font = `bold ${label.size}px ${label.font}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Draw text with outline - use label.size for line width
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = label.size * 0.08;  // Changed from fontSize to label.size
+          ctx.strokeText(label.text, x, y);
+          
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(label.text, x, y);
+        });
+      }
 
       resolve(canvas);
     };

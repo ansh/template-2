@@ -29,6 +29,16 @@ interface MemeGeneratorProps {
   onToggleMode: () => void;
 }
 
+// Add this interface near the top with other interfaces
+interface Label {
+  id: string;
+  text: string;
+  horizontalPosition: number;
+  verticalPosition: number;
+  size: number;
+  font: string;
+}
+
 export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeGeneratorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
@@ -45,6 +55,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
     verticalPosition: 25, // Default 25% from top
     alignment: 'center', // Add default alignment
   });
+  const [labels, setLabels] = useState<Label[]>([]);
 
   useEffect(() => {
     async function loadBackgrounds() {
@@ -74,7 +85,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
     if (selectedTemplate && caption) {
       updatePreview();
     }
-  }, [selectedTemplate, caption, selectedBackground, isGreenscreenMode, textSettings]);
+  }, [selectedTemplate, caption, selectedBackground, isGreenscreenMode, textSettings, labels]);
 
   const handleAISelection = (template: MemeTemplate, aiCaption: string, allOptions: SelectedMeme) => {
     setSelectedTemplate(template);
@@ -105,7 +116,8 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         caption,
         selectedBackground?.url,
         isGreenscreenMode,
-        textSettings
+        textSettings,
+        labels
       );
 
       // Create download link and trigger download immediately
@@ -143,13 +155,36 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         caption,
         selectedBackground?.url,
         isGreenscreenMode,
-        textSettings
+        textSettings,
+        labels
       );
       setPreviewCanvas(canvas);
     } catch (error) {
       console.error('Error generating preview:', error);
       toast.error('Failed to generate preview');
     }
+  };
+
+  const addLabel = () => {
+    const newLabel: Label = {
+      id: uuidv4(),
+      text: '',
+      horizontalPosition: 50,
+      verticalPosition: 50,
+      size: 78,
+      font: 'Impact'
+    };
+    setLabels([...labels, newLabel]);
+  };
+
+  const updateLabel = (id: string, updates: Partial<Label>) => {
+    setLabels(labels.map(label => 
+      label.id === id ? { ...label, ...updates } : label
+    ));
+  };
+
+  const deleteLabel = (id: string) => {
+    setLabels(labels.filter(label => label.id !== id));
   };
 
   return (
@@ -173,104 +208,212 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
                     rows={3}
                     placeholder="Enter your caption..."
                   />
-                  
-                  <details className="mt-4">
-                    <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
-                      Advanced Options
-                    </summary>
-                    
-                    <div className="mt-4 space-y-4 pl-2">
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Font Size</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min="40"
-                            max="120"
-                            value={textSettings.size}
-                            onChange={(e) => updateTextSetting('size', parseInt(e.target.value))}
-                            className="flex-1"
-                          />
-                          <span className="text-sm text-gray-600 w-12">{textSettings.size}</span>
-                        </div>
-                      </div>
+                </div>
 
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Font Family</label>
-                        <select
-                          value={textSettings.font}
-                          onChange={(e) => updateTextSetting('font', e.target.value)}
-                          className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="Impact">Impact (Classic Meme)</option>
-                          <option value="Arial Black">Arial Black</option>
-                          <option value="Comic Sans MS">Comic Sans MS</option>
-                          <option value="Helvetica">Helvetica</option>
-                          <option value="Futura">Futura</option>
-                          <option value="Oswald">Oswald</option>
-                          <option value="Anton">Anton</option>
-                          <option value="Roboto">Roboto</option>
-                          <option value="Times New Roman">Times New Roman</option>
-                          <option value="Verdana">Verdana</option>
-                          <option value="Courier New">Courier New</option>
-                          <option value="Bebas Neue">Bebas Neue</option>
-                        </select>
-                      </div>
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900">
+                    Caption Settings
+                  </summary>
+                  <div className="mt-3 space-y-4 pl-2">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Font</label>
+                      <select
+                        value={textSettings.font}
+                        onChange={(e) => updateTextSetting('font', e.target.value)}
+                        className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Impact">Impact (Classic Meme)</option>
+                        <option value="Arial Black">Arial Black</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Futura">Futura</option>
+                        <option value="Oswald">Oswald</option>
+                        <option value="Anton">Anton</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Bebas Neue">Bebas Neue</option>
+                      </select>
+                    </div>
 
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Vertical Position (%)</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min="5"
-                            max="95"
-                            value={textSettings.verticalPosition}
-                            onChange={(e) => updateTextSetting('verticalPosition', parseInt(e.target.value))}
-                            className="flex-1"
-                          />
-                          <span className="text-sm text-gray-600 w-12">{textSettings.verticalPosition}%</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Text Alignment</label>
-                        <div className="flex gap-0 border rounded-md overflow-hidden">
-                          <button
-                            onClick={() => updateTextSetting('alignment', 'left')}
-                            className={`flex-1 p-2 text-sm ${
-                              textSettings.alignment === 'left' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            Left
-                          </button>
-                          <div className="w-px bg-gray-200" />
-                          <button
-                            onClick={() => updateTextSetting('alignment', 'center')}
-                            className={`flex-1 p-2 text-sm ${
-                              textSettings.alignment === 'center' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            Center
-                          </button>
-                          <div className="w-px bg-gray-200" />
-                          <button
-                            onClick={() => updateTextSetting('alignment', 'right')}
-                            className={`flex-1 p-2 text-sm ${
-                              textSettings.alignment === 'right' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            Right
-                          </button>
-                        </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Size</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="40"
+                          max="120"
+                          value={textSettings.size}
+                          onChange={(e) => updateTextSetting('size', parseInt(e.target.value))}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-gray-600 w-12">{textSettings.size}</span>
                       </div>
                     </div>
-                  </details>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Vertical Position (%)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="5"
+                          max="95"
+                          value={textSettings.verticalPosition}
+                          onChange={(e) => updateTextSetting('verticalPosition', parseInt(e.target.value))}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-gray-600 w-12">{textSettings.verticalPosition}%</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Text Alignment</label>
+                      <div className="flex gap-0 border rounded-md overflow-hidden">
+                        <button
+                          onClick={() => updateTextSetting('alignment', 'left')}
+                          className={`flex-1 p-2 text-sm ${
+                            textSettings.alignment === 'left' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          Left
+                        </button>
+                        <div className="w-px bg-gray-200" />
+                        <button
+                          onClick={() => updateTextSetting('alignment', 'center')}
+                          className={`flex-1 p-2 text-sm ${
+                            textSettings.alignment === 'center' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          Center
+                        </button>
+                        <div className="w-px bg-gray-200" />
+                        <button
+                          onClick={() => updateTextSetting('alignment', 'right')}
+                          className={`flex-1 p-2 text-sm ${
+                            textSettings.alignment === 'right' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          Right
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-medium text-gray-700">Labels</h3>
+                    <button
+                      onClick={addLabel}
+                      className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+                    >
+                      Add Label
+                    </button>
+                  </div>
+
+                  {labels.map(label => (
+                    <div key={label.id} className="space-y-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                      <input
+                        type="text"
+                        value={label.text}
+                        onChange={(e) => updateLabel(label.id, { text: e.target.value })}
+                        placeholder="Enter label text..."
+                        className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500"
+                      />
+
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs text-gray-600 mb-1">Horizontal</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={label.horizontalPosition}
+                              onChange={(e) => updateLabel(label.id, { horizontalPosition: parseInt(e.target.value) })}
+                              className="flex-1"
+                            />
+                            <span className="text-sm text-gray-600 w-12">{label.horizontalPosition}%</span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
+                          <label className="block text-xs text-gray-600 mb-1">Vertical</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={label.verticalPosition}
+                              onChange={(e) => updateLabel(label.id, { verticalPosition: parseInt(e.target.value) })}
+                              className="flex-1"
+                            />
+                            <span className="text-sm text-gray-600 w-12">{label.verticalPosition}%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <details className="mt-2">
+                        <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900">
+                          Label Style
+                        </summary>
+                        <div className="mt-3 space-y-4 pl-2">
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Font</label>
+                            <select
+                              value={label.font}
+                              onChange={(e) => updateLabel(label.id, { font: e.target.value })}
+                              className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="Impact">Impact (Classic Meme)</option>
+                              <option value="Arial Black">Arial Black</option>
+                              <option value="Comic Sans MS">Comic Sans MS</option>
+                              <option value="Helvetica">Helvetica</option>
+                              <option value="Futura">Futura</option>
+                              <option value="Oswald">Oswald</option>
+                              <option value="Anton">Anton</option>
+                              <option value="Roboto">Roboto</option>
+                              <option value="Times New Roman">Times New Roman</option>
+                              <option value="Verdana">Verdana</option>
+                              <option value="Courier New">Courier New</option>
+                              <option value="Bebas Neue">Bebas Neue</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Size</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="range"
+                                min="40"
+                                max="120"
+                                value={label.size}
+                                onChange={(e) => updateLabel(label.id, { size: parseInt(e.target.value) })}
+                                className="flex-1"
+                              />
+                              <span className="text-sm text-gray-600 w-12">{label.size}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </details>
+
+                      <div className="flex justify-end mt-3">
+                        <button
+                          onClick={() => deleteLabel(label.id)}
+                          className="text-sm text-red-600 hover:text-red-700"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {isGreenscreenMode && (

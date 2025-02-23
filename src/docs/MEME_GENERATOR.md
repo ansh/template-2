@@ -4,6 +4,121 @@
 
 The meme generator creates memes using AI for template selection and caption generation, supporting both regular video templates and greenscreen videos with background replacement.
 
+## Text Rendering System
+
+### Text Settings Interface
+```typescript
+interface TextSettings {
+  size: number;        // Font size (40-120)
+  font: string;        // Font family
+  verticalPosition: number; // % from top (5-95)
+  alignment: 'left' | 'center' | 'right';
+}
+```
+
+### Font Options
+- Impact (Classic Meme) - Default
+- Arial Black
+- Comic Sans MS
+- Helvetica
+- Futura
+- Oswald (Google Font)
+- Anton (Google Font)
+- Roboto
+- Times New Roman
+- Verdana
+- Courier New
+- Bebas Neue (Google Font)
+
+### Text Rendering Process
+1. Line Breaking:
+```typescript
+function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  // First split by user line breaks
+  const userLines = text.split('\n');
+  const lines: string[] = [];
+
+  userLines.forEach(userLine => {
+    if (userLine.trim() === '') {
+      lines.push('');
+      return;
+    }
+    // Then handle word wrapping within each line
+    // ... word wrapping logic
+  });
+  return lines;
+}
+```
+
+2. Text Positioning:
+```typescript
+// X position based on alignment
+const x = textSettings?.alignment === 'left' 
+  ? canvas.width * 0.05 
+  : textSettings?.alignment === 'right' 
+    ? canvas.width * 0.95 
+    : canvas.width / 2;
+
+// Y position based on vertical position setting
+const textY = canvas.height * (textSettings?.verticalPosition || 25) / 100;
+```
+
+3. Text Styling:
+```typescript
+ctx.font = `bold ${fontSize}px ${textSettings?.font || 'Impact'}`;
+ctx.textAlign = textSettings?.alignment || 'center';
+ctx.textBaseline = 'bottom';
+ctx.strokeStyle = '#000000';
+ctx.lineWidth = fontSize * 0.08;  // Outline thickness scales with font size
+ctx.fillStyle = '#FFFFFF';
+```
+
+### Important Implementation Notes
+- Text settings are shared between preview and final video
+- Font size range: 40-120px (default: 78px)
+- Vertical position: 5-95% (default: 25%)
+- Line height: fontSize * 1.2
+- Text outline scales with font size
+- Edge margins: 5% for left/right alignment
+- Max width: 90% of canvas width
+
+### Label System
+Labels are independent text elements that can be positioned anywhere on the meme. Each label has its own settings:
+
+```typescript
+interface Label {
+  id: string;
+  text: string;
+  horizontalPosition: number; // % from left (0-100)
+  verticalPosition: number;   // % from top (0-100)
+  size: number;              // Font size (40-120)
+  font: string;              // Independent font family
+}
+```
+
+#### Label Features
+- Independent positioning using percentage-based coordinates
+- Individual font selection
+- Individual size control (40-120px)
+- Center-aligned at specified position
+- White text with black outline (outline scales with size)
+- Real-time preview updates
+
+#### Label Controls
+1. Basic Controls
+   - Text input field
+   - Horizontal position slider (0-100%)
+   - Vertical position slider (0-100%)
+
+2. Advanced Style Options
+   - Font selector (same options as caption)
+   - Size slider (40-120px)
+
+3. Management
+   - Add Label button
+   - Delete button per label
+   - No limit on number of labels
+
 ## Component Flow
 
 ### 1. Initial User Input
@@ -44,7 +159,7 @@ The meme generator creates memes using AI for template selection and caption gen
     - Full width elements
 - Preview includes:
   - First frame of video (at 0.1s for stable green screen)
-  - Positioned caption with Impact font
+  - Positioned caption with selected font settings
   - Background image (if greenscreen)
   - Green screen removal effect
 - Maintains exact same styling as final video:
@@ -52,6 +167,97 @@ The meme generator creates memes using AI for template selection and caption gen
   - Text positioning
   - Aspect ratio and letterboxing
   - Green screen processing
+
+## Video Processing
+
+### Regular Videos
+- Canvas: 1080x1920
+- Video positioning:
+  - Centered vertically
+  - Black letterboxing
+- Caption positioning:
+  - Controlled by text settings
+  - Default: 25% from top
+  - Supports left/center/right alignment
+
+### Greenscreen Videos
+- Background:
+  - Loaded first
+  - Full canvas coverage
+  - Must complete loading before video starts
+- Video processing:
+  - Frame-by-frame green removal
+  - Green detection formula:
+    ```javascript
+    if (g > 100 && g > 1.4 * r && g > 1.4 * b) {
+      pixels[i + 3] = 0;
+    }
+    ```
+
+### Background Selection
+- Only visible when greenscreen mode is enabled
+- Displays grid of available backgrounds
+- Each background:
+  - Must be 9:16 aspect ratio
+  - Shows preview thumbnail
+  - Highlights when selected
+- Selected background is used for video processing
+- If no background selected in greenscreen mode, download is prevented
+
+## Error Handling
+
+### Common Issues & Solutions
+
+1. Video Processing
+   - Issue: Video appears before background (greenscreen)
+   - Solution: Use isBackgroundLoaded flag
+   ```typescript
+   let isBackgroundLoaded = false;
+   backgroundImg.onload = () => {
+     isBackgroundLoaded = true;
+     if (processingVideo.readyState >= 2) {
+       processingVideo.play();
+     }
+   };
+   ```
+
+2. Caption Positioning
+   - Issue: Different requirements for modes
+   - Solution: Conditional positioning
+   ```typescript
+   const textY = canvas.height * (textSettings?.verticalPosition || 25) / 100;
+   ```
+
+3. Font Loading
+   - Issue: Custom fonts may not be loaded
+   - Solution: Include Google Fonts in layout
+   ```typescript
+   <link
+     href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Anton&family=Bebas+Neue&display=swap"
+     rel="stylesheet"
+   />
+   ```
+
+## Known Issues
+1. Video processing performance needs optimization
+2. Template selection accuracy needs improvement
+3. Error handling needs standardization
+4. Loading states need refinement
+5. Green screen effect requires slight delay for stability
+   - Preview uses 0.1s offset for stable frame
+   - Final video may show brief transition
+
+## Future Improvements
+1. Add template categories
+2. Implement background categories
+3. Add custom background upload
+4. Improve greenscreen detection
+5. Add caption style options
+6. Add background search/filtering
+7. Support multiple aspect ratios
+8. Add text animation options
+9. Add multi-line text positioning
+10. Add text color customization
 
 ## Technical Implementation
 
@@ -190,45 +396,6 @@ CAPTIONS:
 3. [Caption 3]
 ```
 
-## Error Handling
-
-### Common Issues & Solutions
-
-1. Video Processing
-   - Issue: Video appears before background (greenscreen)
-   - Solution: Use isBackgroundLoaded flag
-   ```typescript
-   let isBackgroundLoaded = false;
-   backgroundImg.onload = () => {
-     isBackgroundLoaded = true;
-     if (processingVideo.readyState >= 2) {
-       processingVideo.play();
-     }
-   };
-   ```
-
-2. Caption Positioning
-   - Issue: Different requirements for modes
-   - Solution: Conditional positioning
-   ```typescript
-   const textY = isGreenscreen 
-     ? canvas.height * 0.25 
-     : yOffset - 40;
-   ```
-
-3. Template Selection
-   - Issue: No matching templates
-   - Solution: Fallback with mode filter
-   ```typescript
-   if (!templates || templates.length === 0) {
-     const fallback = await supabase
-       .from('meme_templates')
-       .select('*')
-       .eq('is_greenscreen', isGreenscreenMode)
-       .limit(5);
-   }
-   ```
-
 ## Development Guidelines
 
 ### Adding New Templates
@@ -263,21 +430,3 @@ CAPTIONS:
 - Show error messages if preview fails
 - Maintain consistent styling with final video
 - Consider performance implications of canvas operations
-
-## Known Issues
-1. Video processing performance needs optimization
-2. Template selection accuracy needs improvement
-3. Error handling needs standardization
-4. Loading states need refinement
-5. Green screen effect requires slight delay for stability
-   - Preview uses 0.1s offset for stable frame
-   - Final video may show brief transition
-
-## Future Improvements
-1. Add template categories
-2. Implement background categories
-3. Add custom background upload
-4. Improve greenscreen detection
-5. Add caption style options
-6. Add background search/filtering
-7. Support multiple aspect ratios

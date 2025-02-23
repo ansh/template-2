@@ -12,6 +12,7 @@ export function TemplateUploader() {
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [isGreenscreen, setIsGreenscreen] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,14 +51,15 @@ export function TemplateUploader() {
       const { embedding } = await embeddingResponse.json();
       console.log('Embedding to store:', embedding.length); // Should be 1536
 
-      // Create database entry
+      // Create database entry with isGreenscreen flag
       const { error: dbError, data } = await supabase
         .from('meme_templates')
         .insert({
           name: templateName,
           instructions: templateExplanation,
           video_url: publicUrl,
-          embedding
+          embedding,
+          is_greenscreen: isGreenscreen
         })
         .select()
         .single();
@@ -130,6 +132,28 @@ export function TemplateUploader() {
           required
         />
       </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isGreenscreen"
+          checked={isGreenscreen}
+          onChange={(e) => setIsGreenscreen(e.target.checked)}
+          className="w-4 h-4 text-blue-600 rounded"
+        />
+        <label htmlFor="isGreenscreen" className="text-sm font-medium text-gray-700">
+          This is a greenscreen template
+        </label>
+      </div>
+
+      {isGreenscreen && (
+        <div className="bg-green-50 p-4 rounded-lg">
+          <p className="text-sm text-green-700">
+            ℹ️ Greenscreen templates should have a solid green background for best results. 
+            The green background will be replaced with user-selected backgrounds when creating memes.
+          </p>
+        </div>
+      )}
 
       <div>
         <label htmlFor="templateExplanation" className="block text-sm font-medium text-gray-700 mb-2">

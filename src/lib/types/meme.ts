@@ -16,4 +16,12 @@ export interface MemeRequest {
 export interface MemeResponse {
   caption: string;
   videoId: string;
+}
+
+export interface BackgroundImage {
+  id: string;
+  url: string;
+  name: string;
+  tags: string[];
+  aspect_ratio: "9:16" | "16:9" | "1:1";
 } 

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import AIMemeSelector from './AIMemeSelector';
 import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
+import { BackgroundImage } from '@/lib/types/meme';
 
 // Import or define the SelectedMeme interface
 interface SelectedMeme {
@@ -21,12 +22,44 @@ interface TemplateData {
   captions: string[];
 }
 
-export default function MemeGenerator() {
+interface MemeGeneratorProps {
+  isGreenscreenMode: boolean;
+  onToggleMode: () => void;
+}
+
+export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeGeneratorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [generatedOptions, setGeneratedOptions] = useState<SelectedMeme | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const [selectedBackground, setSelectedBackground] = useState<BackgroundImage | null>(null);
+  const [backgrounds, setBackgrounds] = useState<BackgroundImage[]>([]);
+  const [isLoadingBackgrounds, setIsLoadingBackgrounds] = useState(false);
+
+  useEffect(() => {
+    async function loadBackgrounds() {
+      setIsLoadingBackgrounds(true);
+      try {
+        const { data, error } = await supabase
+          .from('backgrounds')
+          .select('*')
+          .eq('aspect_ratio', '9:16');
+        
+        if (error) throw error;
+        if (data) setBackgrounds(data);
+      } catch (error) {
+        console.error('Error loading backgrounds:', error);
+        toast.error('Failed to load backgrounds');
+      } finally {
+        setIsLoadingBackgrounds(false);
+      }
+    }
+
+    if (isGreenscreenMode) {
+      loadBackgrounds();
+    }
+  }, [isGreenscreenMode]);
 
   const handleAISelection = (template: MemeTemplate, aiCaption: string, allOptions: SelectedMeme) => {
     setSelectedTemplate(template);
@@ -45,12 +78,18 @@ export default function MemeGenerator() {
       return;
     }
 
+    if (isGreenscreenMode && !selectedBackground) {
+      toast.error('Please select a background image');
+      return;
+    }
+
     setIsDownloading(true);
     try {
-      // Create the meme video
       const videoBlob = await createMemeVideo(
         selectedTemplate.video_url,
-        caption
+        caption,
+        selectedBackground?.url,
+        isGreenscreenMode
       );
 
       // Create download link and trigger download immediately
@@ -74,6 +113,18 @@ export default function MemeGenerator() {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center gap-4 mb-6">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isGreenscreenMode}
+            onChange={onToggleMode}
+            className="w-4 h-4"
+          />
+          <span>Greenscreen Mode</span>
+        </label>
+      </div>
+
       {selectedTemplate ? (
         // Phase 3: Selected template with editor and other options
         <>
@@ -92,6 +143,28 @@ export default function MemeGenerator() {
                 />
               </div>
             </div>
+
+            {isGreenscreenMode && (
+              <div className="mb-4">
+                <h3 className="text-lg font-medium mb-2">Choose Background</h3>
+                {isLoadingBackgrounds ? (
+                  <div className="text-center py-4">Loading backgrounds...</div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-4">
+                    {backgrounds.map(bg => (
+                      <button
+                        key={bg.id}
+                        onClick={() => setSelectedBackground(bg)}
+                        className={`relative aspect-[9/16] overflow-hidden rounded-lg border-2 
+                          ${selectedBackground?.id === bg.id ? 'border-blue-500' : 'border-transparent'}`}
+                      >
+                        <img src={bg.url} alt={bg.name} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <video
               ref={previewVideoRef}
@@ -148,7 +221,10 @@ export default function MemeGenerator() {
         </>
       ) : (
         // Phase 1 & 2: Initial form or generated options
-        <AIMemeSelector onSelectTemplate={handleAISelection} />
+        <AIMemeSelector 
+          onSelectTemplate={handleAISelection} 
+          isGreenscreenMode={isGreenscreenMode}
+        />
       )}
     </div>
   );

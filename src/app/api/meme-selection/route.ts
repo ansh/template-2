@@ -24,27 +24,28 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
-    console.log('Processing prompt:', prompt);
+    const { prompt, isGreenscreenMode } = await req.json();
+    console.log('Processing prompt:', prompt, 'Greenscreen mode:', isGreenscreenMode);
 
     // First check if we have any templates at all
     const { data: allTemplates, error: checkError } = await supabase
       .from('meme_templates')
-      .select('id, name, embedding');
+      .select('id, name, embedding')
+      .eq('is_greenscreen', isGreenscreenMode);
     
-    console.log('Total templates:', allTemplates?.length);
-    console.log('Templates with embeddings:', allTemplates?.filter(t => t.embedding).length);
+    console.log('Total matching templates:', allTemplates?.length);
 
     // Generate embedding for the user's prompt
     const promptEmbedding = await generateEmbedding(prompt);
     console.log('Generated embedding successfully');
 
-    // Query templates using vector similarity
+    // Query templates using vector similarity, adding greenscreen filter
     const { data: templates, error } = await supabase
       .rpc('match_meme_templates', {
         query_embedding: promptEmbedding,
-        match_threshold: 0.8, // Increased from 0.0 to 0.8 for high relevance
-        match_count: 5
+        match_threshold: 0.8,
+        match_count: 5,
+        is_greenscreen_filter: isGreenscreenMode
       });
 
     if (error) {
@@ -52,23 +53,18 @@ export async function POST(req: Request) {
       throw error;
     }
 
-    console.log('Templates returned:', templates?.length);
-    console.log('Similarity scores:', templates?.map((t: MemeTemplate & { similarity: number }) => ({
-      name: t.name,
-      similarity: t.similarity
-    })));
-    
+    // If no matches, use fallback with greenscreen filter
     if (!templates || templates.length === 0) {
       console.log('No templates found, using fallback');
-      // If no matches, just return some random templates as fallback
       const { data: fallbackTemplates, error: fallbackError } = await supabase
         .from('meme_templates')
         .select('*')
+        .eq('is_greenscreen', isGreenscreenMode)
         .limit(5);
 
       if (fallbackError) throw fallbackError;
       if (!fallbackTemplates || fallbackTemplates.length === 0) {
-        throw new Error('No templates available in database');
+        throw new Error('No matching templates available');
       }
 
       return NextResponse.json({ templates: fallbackTemplates });

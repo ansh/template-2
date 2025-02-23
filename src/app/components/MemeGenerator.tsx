@@ -8,6 +8,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
 
+// Import or define the SelectedMeme interface
+interface SelectedMeme {
+  templates: {
+    template: MemeTemplate;
+    captions: string[];
+  }[];
+}
+
+interface TemplateData {
+  template: MemeTemplate;
+  captions: string[];
+}
+
 export default function MemeGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
@@ -114,13 +127,13 @@ export default function MemeGenerator() {
             <div>
               <h2 className="text-lg font-medium text-gray-900 mb-4">Other Options</h2>
               <div className="grid gap-4 md:grid-cols-2">
-                {generatedOptions.templates.map((templateData, templateIndex) => (
+                {generatedOptions.templates.map((templateData: TemplateData, templateIndex: number) => (
                   <div key={templateIndex} className="p-4 border rounded-lg bg-gray-50">
                     <h3 className="font-medium mb-4">{templateData.template.name}</h3>
                     
                     <div className="space-y-3 mb-6">
                       <h4 className="font-medium text-blue-600">Captions:</h4>
-                      {templateData.captions.map((captionOption, captionIndex) => (
+                      {templateData.captions.map((captionOption: string, captionIndex: number) => (
                         <button
                           key={captionIndex}
                           onClick={() => handleAISelection(templateData.template, captionOption, generatedOptions)}

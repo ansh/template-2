@@ -5,8 +5,10 @@ import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'react-hot-toast';
 
-interface Props {
+interface AIMemeSelector {
   onSelectTemplate: (template: MemeTemplate, caption: string, allOptions: SelectedMeme) => void;
+  isGreenscreenMode: boolean;
+  onToggleMode: () => void;
 }
 
 interface AIResponse {
@@ -36,7 +38,7 @@ interface TemplateResponse {
   captions: string[];
 }
 
-export default function AIMemeSelector({ onSelectTemplate }: Props) {
+export default function AIMemeSelector({ onSelectTemplate, isGreenscreenMode, onToggleMode }: AIMemeSelector) {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [audience, setAudience] = useState('');
@@ -57,7 +59,11 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, audience }),
+        body: JSON.stringify({ 
+          prompt,
+          audience,
+          isGreenscreenMode
+        }),
       });
 
       if (!response.ok) {
@@ -186,6 +192,18 @@ export default function AIMemeSelector({ onSelectTemplate }: Props) {
               rows={3}
               placeholder="Describe what kind of meme you want to create... (Press Enter to submit, Shift+Enter for new line)"
             />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isGreenscreenMode}
+                onChange={onToggleMode}
+                className="w-4 h-4"
+              />
+              <span>Greenscreen Mode</span>
+            </label>
           </div>
           
           <div>

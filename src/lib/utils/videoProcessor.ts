@@ -11,9 +11,25 @@ declare global {
 export async function createMemeVideo(
   videoUrl: string,
   caption: string,
+  backgroundImage?: string,
+  isGreenscreen?: boolean
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const processingVideo = document.createElement('video');
+    const backgroundImg = new Image();
+    let isBackgroundLoaded = false;
+    
+    if (isGreenscreen && backgroundImage) {
+      backgroundImg.crossOrigin = 'anonymous';
+      backgroundImg.onload = () => {
+        isBackgroundLoaded = true;
+        if (processingVideo.readyState >= 2) {
+          processingVideo.play();
+        }
+      };
+      backgroundImg.src = backgroundImage;
+    }
+
     processingVideo.src = videoUrl;
     processingVideo.crossOrigin = 'anonymous';
     
@@ -72,34 +88,91 @@ export async function createMemeVideo(
 
       processingVideo.onplay = () => {
         const drawFrame = () => {
+          // Clear canvas
           ctx.fillStyle = '#000000';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(
-            processingVideo,
-            0,
-            yOffset,
-            targetWidth,
-            targetHeight
-          );
 
-          const fontSize = 72;
+          if (isGreenscreen && isBackgroundLoaded) {
+            // First draw the background
+            ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+            
+            // Create a temporary canvas for the video frame
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d')!;
+            tempCanvas.width = targetWidth;
+            tempCanvas.height = targetHeight;
+            
+            // Draw video frame to temp canvas
+            tempCtx.drawImage(processingVideo, 0, 0, targetWidth, targetHeight);
+            
+            // Get image data for processing
+            const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
+            const pixels = imageData.data;
+
+            // Green screen removal with improved thresholds
+            for (let i = 0; i < pixels.length; i += 4) {
+              const r = pixels[i];
+              const g = pixels[i + 1];
+              const b = pixels[i + 2];
+              
+              // Improved green screen detection
+              if (g > 100 && g > 1.4 * r && g > 1.4 * b) {
+                pixels[i + 3] = 0; // Make pixel transparent
+              }
+            }
+
+            // Put processed frame back
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            // Draw processed frame onto main canvas
+            ctx.drawImage(tempCanvas, 0, yOffset, targetWidth, targetHeight);
+          } else {
+            // Regular video drawing
+            ctx.drawImage(processingVideo, 0, yOffset, targetWidth, targetHeight);
+          }
+
+          // Draw caption with adjusted position
+          const fontSize = Math.floor(canvas.width * 0.078); // Keep the new larger font size
           ctx.font = `bold ${fontSize}px Impact`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
           
-          const maxWidth = canvas.width - 40;
+          const maxWidth = canvas.width * 0.9; // 90% of canvas width
           const lines = wrapText(ctx, caption, maxWidth);
           const lineHeight = fontSize * 1.2;
-          const textY = yOffset - 40;
 
-          lines.forEach((line, index) => {
-            const y = textY - (lines.length - 1 - index) * lineHeight;
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 8;
-            ctx.strokeText(line, canvas.width / 2, y);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillText(line, canvas.width / 2, y);
-          });
+          // Different text positioning for greenscreen vs regular videos
+          if (isGreenscreen) {
+            // For greenscreen: position at 25% from top of canvas
+            const quarterHeight = canvas.height * 0.25;
+            lines.forEach((line, index) => {
+              const y = quarterHeight + (index * lineHeight);
+              
+              // Draw text stroke
+              ctx.strokeStyle = '#000000';
+              ctx.lineWidth = fontSize * 0.08;
+              ctx.strokeText(line, canvas.width / 2, y);
+              
+              // Draw text fill
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillText(line, canvas.width / 2, y);
+            });
+          } else {
+            // For regular videos: use the original positioning logic
+            const textY = yOffset - 40;
+            lines.forEach((line, index) => {
+              const y = textY - (lines.length - 1 - index) * lineHeight;
+              
+              // Draw text stroke
+              ctx.strokeStyle = '#000000';
+              ctx.lineWidth = fontSize * 0.08;
+              ctx.strokeText(line, canvas.width / 2, y);
+              
+              // Draw text fill
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillText(line, canvas.width / 2, y);
+            });
+          }
 
           if (!processingVideo.ended) {
             requestAnimationFrame(drawFrame);
@@ -110,8 +183,10 @@ export async function createMemeVideo(
         drawFrame();
       };
 
-      processingVideo.currentTime = 0;
-      processingVideo.play();
+      // Remove the seek delay for final video
+      if (!isGreenscreen || (isGreenscreen && isBackgroundLoaded)) {
+        processingVideo.play();
+      }
     };
 
     processingVideo.onerror = (e) => {

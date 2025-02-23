@@ -11,163 +11,115 @@ declare global {
 export async function createMemeVideo(
   videoUrl: string,
   caption: string,
-  onProgress?: (progress: number) => void
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    // Add timeout protection
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error('Video processing timed out'));
-    }, 30000); // 30 second timeout
-
-    console.log('Starting video processing:', videoUrl);
+    const processingVideo = document.createElement('video');
+    processingVideo.src = videoUrl;
+    processingVideo.crossOrigin = 'anonymous';
     
-    // State tracking
-    let isSetup = false;
-    let mediaRecorder: MediaRecorder | null = null;
-    const chunks: Blob[] = [];
+    const cleanup = () => {
+      const stream = processingVideo.captureStream();
+      stream.getTracks().forEach(track => track.stop());
+      processingVideo.remove();
+    };
 
-    // Create video element
-    const video = document.createElement('video');
-    video.src = videoUrl;
-    video.crossOrigin = 'anonymous';
-    video.muted = true;
-    video.preload = 'auto';
-
-    // Create canvas
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = 1080;
-    canvas.height = 1920;
-
-    function drawTextOverlay() {
-      const fontSize = 72;
-      ctx.font = `bold ${fontSize}px Impact`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
+    processingVideo.onloadedmetadata = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
       
-      const maxWidth = canvas.width - 40;
-      const lines = wrapText(ctx, caption, maxWidth);
-      const lineHeight = fontSize * 1.2;
-      const textY = canvas.height / 4;
-
-      lines.forEach((line, index) => {
-        const y = textY - (lines.length - 1 - index) * lineHeight;
-        
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 8;
-        ctx.strokeText(line, canvas.width / 2, y);
-        
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(line, canvas.width / 2, y);
-      });
-    }
-
-    function cleanup() {
-      if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-      }
-      video.pause();
-      video.src = '';
-      video.remove();
-      canvas.remove();
-    }
-
-    // Wait for video metadata to load
-    video.addEventListener('loadedmetadata', () => {
-      if (isSetup) return;
-      isSetup = true;
-
-      const videoAspect = video.videoWidth / video.videoHeight;
+      canvas.width = 1080;
+      canvas.height = 1920;
+      
+      const videoAspect = processingVideo.videoWidth / processingVideo.videoHeight;
       const targetWidth = canvas.width;
       const targetHeight = targetWidth / videoAspect;
       const yOffset = (canvas.height - targetHeight) / 2;
 
-      // Set up streams
-      const canvasStream = canvas.captureStream(30); // Specify framerate
-      const audioStream = video.captureStream();
+      // Get both video and audio streams
+      const canvasStream = canvas.captureStream(30);
+      const videoStream = processingVideo.captureStream();
       
-      // Add audio if available
-      const audioTracks = audioStream.getAudioTracks();
-      if (audioTracks.length > 0) {
-        canvasStream.addTrack(audioTracks[0]);
+      // Add audio track from original video if it exists
+      const audioTrack = videoStream.getAudioTracks()[0];
+      if (audioTrack) {
+        canvasStream.addTrack(audioTrack);
       }
 
-      try {
-        mediaRecorder = new MediaRecorder(canvasStream, {
-          mimeType: 'video/webm;codecs=vp8,opus',
-          videoBitsPerSecond: 8000000
-        });
-      } catch (e) {
-        console.error('MediaRecorder creation failed:', e);
-        cleanup();
-        reject(e);
-        return;
-      }
+      const mimeType = [
+        'video/mp4;codecs=h264,aac',
+        'video/mp4',
+        'video/webm;codecs=vp8,opus',
+        'video/webm'
+      ].find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm';
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
+      const mediaRecorder = new MediaRecorder(canvasStream, {
+        mimeType,
+        videoBitsPerSecond: 8000000,
+      });
+
+      const chunks: Blob[] = [];
+      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      
+      processingVideo.onended = () => {
+        mediaRecorder.stop();
       };
 
       mediaRecorder.onstop = () => {
-        clearTimeout(timeout); // Clear timeout on success
-        const blob = new Blob(chunks, { type: 'video/webm' });
         cleanup();
+        const blob = new Blob(chunks, { type: mimeType });
         resolve(blob);
       };
 
-      // Start recording and playing
-      let animationFrame: number;
-
-      function animate() {
-        if (video.ended || !mediaRecorder) {
-          cancelAnimationFrame(animationFrame);
-          if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-          }
-          return;
-        }
-
-        // Calculate and report progress
-        const progress = (video.currentTime / video.duration) * 100;
-        onProgress?.(progress);
-
-        // Draw video frame
-        ctx.drawImage(video, 0, yOffset, targetWidth, targetHeight);
-        
-        // Draw black bars
-        if (yOffset > 0) {
+      processingVideo.onplay = () => {
+        const drawFrame = () => {
           ctx.fillStyle = '#000000';
-          ctx.fillRect(0, 0, canvas.width, yOffset);
-          ctx.fillRect(0, yOffset + targetHeight, canvas.width, yOffset);
-        }
-        
-        // Draw caption
-        drawTextOverlay();
-        
-        animationFrame = requestAnimationFrame(animate);
-      }
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(
+            processingVideo,
+            0,
+            yOffset,
+            targetWidth,
+            targetHeight
+          );
 
-      // Start the process
-      video.currentTime = 0;
-      mediaRecorder.start();
-      video.play().then(() => {
-        animate();
-      }).catch(err => {
-        console.error('Playback failed:', err);
-        cleanup();
-        reject(err);
-      });
-    }, { once: true }); // Only run setup once
+          const fontSize = 72;
+          ctx.font = `bold ${fontSize}px Impact`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          
+          const maxWidth = canvas.width - 40;
+          const lines = wrapText(ctx, caption, maxWidth);
+          const lineHeight = fontSize * 1.2;
+          const textY = yOffset - 40;
 
-    video.onerror = (err) => {
-      console.error('Video error:', err);
+          lines.forEach((line, index) => {
+            const y = textY - (lines.length - 1 - index) * lineHeight;
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 8;
+            ctx.strokeText(line, canvas.width / 2, y);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(line, canvas.width / 2, y);
+          });
+
+          if (!processingVideo.ended) {
+            requestAnimationFrame(drawFrame);
+          }
+        };
+
+        mediaRecorder.start();
+        drawFrame();
+      };
+
+      processingVideo.currentTime = 0;
+      processingVideo.play();
+    };
+
+    processingVideo.onerror = (e) => {
       cleanup();
-      reject(err);
+      reject(e);
     };
   });
 }
-
 // Helper function to wrap text
 function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
   const words = text.split(' ');
@@ -186,4 +138,4 @@ function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: num
   }
   lines.push(currentLine);
   return lines;
-} 
+}

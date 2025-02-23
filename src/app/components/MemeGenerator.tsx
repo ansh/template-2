@@ -138,18 +138,6 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4 mb-6">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={isGreenscreenMode}
-            onChange={onToggleMode}
-            className="w-4 h-4"
-          />
-          <span>Greenscreen Mode</span>
-        </label>
-      </div>
-
       {selectedTemplate ? (
         // Phase 3: Selected template with editor and other options
         <>
@@ -267,6 +255,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         <AIMemeSelector 
           onSelectTemplate={handleAISelection} 
           isGreenscreenMode={isGreenscreenMode}
+          onToggleMode={onToggleMode}
         />
       )}
     </div>

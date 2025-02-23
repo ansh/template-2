@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 interface AIMemeSelector {
   onSelectTemplate: (template: MemeTemplate, caption: string, allOptions: SelectedMeme) => void;
   isGreenscreenMode: boolean;
+  onToggleMode: () => void;
 }
 
 interface AIResponse {
@@ -37,7 +38,7 @@ interface TemplateResponse {
   captions: string[];
 }
 
-export default function AIMemeSelector({ onSelectTemplate, isGreenscreenMode }: AIMemeSelector) {
+export default function AIMemeSelector({ onSelectTemplate, isGreenscreenMode, onToggleMode }: AIMemeSelector) {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [audience, setAudience] = useState('');
@@ -191,6 +192,18 @@ export default function AIMemeSelector({ onSelectTemplate, isGreenscreenMode }: 
               rows={3}
               placeholder="Describe what kind of meme you want to create... (Press Enter to submit, Shift+Enter for new line)"
             />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isGreenscreenMode}
+                onChange={onToggleMode}
+                className="w-4 h-4"
+              />
+              <span>Greenscreen Mode</span>
+            </label>
           </div>
           
           <div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import AIMemeSelector from './AIMemeSelector';
 import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';
@@ -11,9 +11,9 @@ import { createMemeVideo } from '@/lib/utils/videoProcessor';
 export default function MemeGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  
+  const [isDownloading, setIsDownloading] = useState(false);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+
   const handleAISelection = (template: MemeTemplate, aiCaption: string) => {
     setSelectedTemplate(template);
     setCaption(aiCaption);
@@ -30,16 +30,17 @@ export default function MemeGenerator() {
       return;
     }
 
-    setIsGenerating(true);
-    setDownloadProgress(0);
-    
+    // Pause the preview video before starting processing
+    if (previewVideoRef.current) {
+      previewVideoRef.current.pause();
+    }
+
+    setIsDownloading(true);
     try {
+      // Create the meme video
       const videoBlob = await createMemeVideo(
         selectedTemplate.video_url,
-        caption,
-        (progress) => {
-          setDownloadProgress(Math.round(progress));
-        }
+        caption
       );
 
       // Create download link
@@ -47,18 +48,26 @@ export default function MemeGenerator() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `meme-${Date.now()}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      
+      // Use a timeout to ensure download starts after processing is complete
+      setTimeout(() => {
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Resume preview video if it exists
+        if (previewVideoRef.current) {
+          previewVideoRef.current.play();
+        }
+      }, 100);
 
       toast.success('Meme downloaded successfully!');
     } catch (error) {
       console.error('Error downloading meme:', error);
       toast.error('Failed to download meme. Please try again.');
     } finally {
-      setIsGenerating(false);
-      setDownloadProgress(0);
+      setIsDownloading(false);
     }
   };
 
@@ -93,27 +102,24 @@ export default function MemeGenerator() {
             </div>
 
             <video
+              ref={previewVideoRef}
               src={selectedTemplate.video_url}
               className="w-full aspect-video object-cover rounded mb-4"
               controls
+              onPlay={() => {
+                // Ensure any existing processing is cleaned up
+                if (isDownloading) {
+                  previewVideoRef.current?.pause();
+                }
+              }}
             />
             
             <button
               onClick={handleDownloadMeme}
-              disabled={isGenerating}
-              className="relative w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300 transition-all"
+              disabled={isDownloading}
+              className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
-              <div className="relative z-10">
-                {isGenerating ? `Processing ${downloadProgress}%` : 'Download Meme'}
-              </div>
-              
-              {/* Progress bar */}
-              {isGenerating && (
-                <div 
-                  className="absolute left-0 top-0 bottom-0 bg-blue-600 transition-all duration-300"
-                  style={{ width: `${downloadProgress}%` }}
-                />
-              )}
+              {isDownloading ? 'Processing...' : 'Download Meme'}
             </button>
           </div>
         </div>

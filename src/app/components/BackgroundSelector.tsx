@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BackgroundImage } from '../lib/types/meme';
-import { supabase } from '../lib/supabase';
+import { BackgroundImage } from '@/lib/types/meme';
+import { supabase } from '@/lib/supabase/client';
 
 interface BackgroundSelectorProps {
   onSelect: (background: BackgroundImage) => void;

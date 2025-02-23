@@ -1,15 +1,34 @@
-import { openai } from "@ai-sdk/openai";
-import { convertToCoreMessages, streamText } from "ai";
+import { OpenAIStream, StreamingTextResponse } from 'ai';
+import OpenAI from 'openai';
+import { getMemeSystemPrompt } from '@/lib/utils/prompts';
 
-export const runtime = "edge";
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error(
+    'OPENAI_API_KEY is not set. Please add it to your environment variables.'
+  );
+}
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
-  const result = await streamText({
-    model: openai("gpt-4o"),
-    messages: convertToCoreMessages(messages),
-    system: "You are a helpful AI assistant",
+  const lastMessage = messages[messages.length - 1];
+  const audience = lastMessage.audience || 'general audience';
+  
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4-turbo-preview',
+    messages: [
+      { role: 'system', content: getMemeSystemPrompt(audience) },
+      ...messages.map((message: any) => ({
+        role: message.role,
+        content: message.content,
+      }))
+    ],
+    stream: true,
   });
 
-  return result.toDataStreamResponse();
-}
+  const stream = OpenAIStream(response);
+  return new StreamingTextResponse(stream);
+} 

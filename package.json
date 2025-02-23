@@ -9,19 +9,23 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^0.0.48",
     "@ai-sdk/openai": "^0.0.54",
+    "@anthropic-ai/sdk": "^0.36.3",
     "@deepgram/sdk": "^3.6.0",
-    "ai": "^3.3.20",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "^2.48.1",
+    "ai": "^3.4.33",
     "date-fns": "^3.6.0",
-    "firebase": "^10.13.0",
     "framer-motion": "^11.3.31",
     "lucide-react": "^0.436.0",
     "next": "14.2.7",
     "react": "^18",
     "react-dom": "^18",
+    "react-hot-toast": "^2.5.2",
     "react-markdown": "^9.0.1",
-    "replicate": "^0.32.0"
+    "replicate": "^0.32.0",
+    "uuid": "^11.0.5",
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "@types/node": "^20",

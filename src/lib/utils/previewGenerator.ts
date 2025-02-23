@@ -115,7 +115,7 @@ export async function createMemePreview(
     };
 
     video.onloadeddata = () => {
-      // Seek to 0.1 seconds instead of first frame
+      // Seek to 0.1 seconds for stable green screen preview
       video.currentTime = 0.1;
     };
 

@@ -183,7 +183,7 @@ export async function createMemeVideo(
         drawFrame();
       };
 
-      // Only start playing when background is loaded (if in greenscreen mode)
+      // Remove the seek delay for final video
       if (!isGreenscreen || (isGreenscreen && isBackgroundLoaded)) {
         processingVideo.play();
       }

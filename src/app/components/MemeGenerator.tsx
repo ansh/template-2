@@ -142,75 +142,81 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         // Phase 3: Selected template with editor and other options
         <>
           <div className="border rounded-lg p-4 bg-white">
-            <div className="space-y-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Caption
-                </label>
-                <textarea
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Enter your caption..."
-                />
-              </div>
-            </div>
+            <div className="flex flex-col lg:flex-row gap-8">
+              <div className="w-full lg:w-1/2 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Caption
+                  </label>
+                  <textarea
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                    placeholder="Enter your caption..."
+                  />
+                </div>
 
-            {isGreenscreenMode && (
-              <div className="mb-4">
-                <h3 className="text-lg font-medium mb-2">Choose Background</h3>
-                {isLoadingBackgrounds ? (
-                  <div className="text-center py-4">Loading backgrounds...</div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-4">
-                    {backgrounds.map(bg => (
-                      <button
-                        key={bg.id}
-                        onClick={() => setSelectedBackground(bg)}
-                        className={`relative aspect-[9/16] overflow-hidden rounded-lg border-2 
-                          ${selectedBackground?.id === bg.id ? 'border-blue-500' : 'border-transparent'}`}
-                      >
-                        <img src={bg.url} alt={bg.name} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
+                {isGreenscreenMode && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Choose Background</h3>
+                    {isLoadingBackgrounds ? (
+                      <div className="text-center py-4">Loading backgrounds...</div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-4">
+                        {backgrounds.map(bg => (
+                          <button
+                            key={bg.id}
+                            onClick={() => setSelectedBackground(bg)}
+                            className={`relative aspect-[9/16] overflow-hidden rounded-lg border-2 
+                              ${selectedBackground?.id === bg.id ? 'border-blue-500' : 'border-transparent'}`}
+                          >
+                            <img src={bg.url} alt={bg.name} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
 
-            <div className="mb-4">
-              <h3 className="text-lg font-medium mb-2">Preview</h3>
-              <div className="relative aspect-[9/16] w-full">
-                {previewCanvas && (
-                  <div className="absolute inset-0">
-                    <img 
-                      src={previewCanvas.toDataURL()} 
-                      alt="Meme preview"
-                      className="w-full h-full object-contain"
-                    />
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Original Video</h3>
+                  <video
+                    ref={previewVideoRef}
+                    src={selectedTemplate.video_url}
+                    className="w-full aspect-video object-cover rounded"
+                    controls
+                  />
+                </div>
+              </div>
+
+              <div className="w-full lg:w-1/2">
+                <h3 className="text-lg font-medium mb-2">Preview</h3>
+                <div className="lg:sticky lg:top-4">
+                  <div className="relative aspect-[9/16] w-full">
+                    {previewCanvas && (
+                      <div className="absolute inset-0">
+                        <img 
+                          src={previewCanvas.toDataURL()} 
+                          alt="Meme preview"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
-            <div className="mb-4">
-              <h3 className="text-lg font-medium mb-2">Original Video</h3>
-              <video
-                ref={previewVideoRef}
-                src={selectedTemplate.video_url}
-                className="w-full aspect-video object-cover rounded"
-                controls
-              />
+            <div className="mt-8 lg:mt-4 flex justify-center">
+              <button
+                onClick={handleDownloadMeme}
+                disabled={isDownloading}
+                className="w-full lg:w-64 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+              >
+                {isDownloading ? 'Processing...' : 'Download Meme'}
+              </button>
             </div>
-            
-            <button
-              onClick={handleDownloadMeme}
-              disabled={isDownloading}
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
-            >
-              {isDownloading ? 'Processing...' : 'Download Meme'}
-            </button>
           </div>
 
           {generatedOptions && (

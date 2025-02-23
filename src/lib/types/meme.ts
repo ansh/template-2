@@ -24,4 +24,11 @@ export interface BackgroundImage {
   name: string;
   tags: string[];
   aspect_ratio: "9:16" | "16:9" | "1:1";
+}
+
+export interface TextSettings {
+  size: number;
+  font: string;
+  verticalPosition: number;
+  alignment: 'left' | 'center' | 'right';
 } 

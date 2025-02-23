@@ -8,11 +8,14 @@ declare global {
   }
 }
 
+import { TextSettings } from '@/lib/types/meme';
+
 export async function createMemeVideo(
   videoUrl: string,
   caption: string,
   backgroundImage?: string,
-  isGreenscreen?: boolean
+  isGreenscreen?: boolean,
+  textSettings?: TextSettings
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const processingVideo = document.createElement('video');
@@ -132,47 +135,35 @@ export async function createMemeVideo(
           }
 
           // Draw caption with adjusted position
-          const fontSize = Math.floor(canvas.width * 0.078); // Keep the new larger font size
-          ctx.font = `bold ${fontSize}px Impact`;
-          ctx.textAlign = 'center';
+          const fontSize = textSettings ? textSettings.size : Math.floor(canvas.width * 0.078);
+          ctx.font = `bold ${fontSize}px ${textSettings?.font || 'Impact'}`;
+          ctx.textAlign = textSettings?.alignment || 'center';
           ctx.textBaseline = 'bottom';
           
-          const maxWidth = canvas.width * 0.9; // 90% of canvas width
+          const maxWidth = canvas.width * 0.9;
           const lines = wrapText(ctx, caption, maxWidth);
           const lineHeight = fontSize * 1.2;
 
-          // Different text positioning for greenscreen vs regular videos
-          if (isGreenscreen) {
-            // For greenscreen: position at 25% from top of canvas
-            const quarterHeight = canvas.height * 0.25;
-            lines.forEach((line, index) => {
-              const y = quarterHeight + (index * lineHeight);
-              
-              // Draw text stroke
-              ctx.strokeStyle = '#000000';
-              ctx.lineWidth = fontSize * 0.08;
-              ctx.strokeText(line, canvas.width / 2, y);
-              
-              // Draw text fill
-              ctx.fillStyle = '#FFFFFF';
-              ctx.fillText(line, canvas.width / 2, y);
-            });
-          } else {
-            // For regular videos: use the original positioning logic
-            const textY = yOffset - 40;
-            lines.forEach((line, index) => {
-              const y = textY - (lines.length - 1 - index) * lineHeight;
-              
-              // Draw text stroke
-              ctx.strokeStyle = '#000000';
-              ctx.lineWidth = fontSize * 0.08;
-              ctx.strokeText(line, canvas.width / 2, y);
-              
-              // Draw text fill
-              ctx.fillStyle = '#FFFFFF';
-              ctx.fillText(line, canvas.width / 2, y);
-            });
-          }
+          // Calculate vertical position
+          const textY = canvas.height * (textSettings?.verticalPosition || 25) / 100;
+
+          // Calculate x position based on alignment
+          const x = textSettings?.alignment === 'left' 
+            ? canvas.width * 0.05 
+            : textSettings?.alignment === 'right' 
+              ? canvas.width * 0.95 
+              : canvas.width / 2;
+
+          lines.forEach((line, index) => {
+            const y = textY + (index * lineHeight);
+            
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = fontSize * 0.08;
+            ctx.strokeText(line, x, y);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(line, x, y);
+          });
 
           if (!processingVideo.ended) {
             requestAnimationFrame(drawFrame);
@@ -197,20 +188,33 @@ export async function createMemeVideo(
 }
 // Helper function to wrap text
 function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
-  const words = text.split(' ');
+  // Split text into lines based on user's line breaks first
+  const userLines = text.split('\n');
   const lines = [];
-  let currentLine = words[0];
 
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i];
-    const width = context.measureText(currentLine + " " + word).width;
-    if (width < maxWidth) {
-      currentLine += " " + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
+  // Then handle word wrapping within each line
+  userLines.forEach(userLine => {
+    if (userLine.trim() === '') {
+      // Preserve empty lines
+      lines.push('');
+      return;
     }
-  }
-  lines.push(currentLine);
+
+    const words = userLine.split(' ');
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const width = context.measureText(currentLine + " " + word).width;
+      if (width < maxWidth) {
+        currentLine += " " + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
+  });
+
   return lines;
 }

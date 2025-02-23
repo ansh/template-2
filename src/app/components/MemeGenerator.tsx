@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
 import { BackgroundImage } from '@/lib/types/meme';
 import { createMemePreview } from '@/lib/utils/previewGenerator';
+import { TextSettings } from '@/lib/types/meme';
 
 // Import or define the SelectedMeme interface
 interface SelectedMeme {
@@ -38,6 +39,12 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
   const [backgrounds, setBackgrounds] = useState<BackgroundImage[]>([]);
   const [isLoadingBackgrounds, setIsLoadingBackgrounds] = useState(false);
   const [previewCanvas, setPreviewCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [textSettings, setTextSettings] = useState<TextSettings>({
+    size: 78, // Default size (matches current fontSize calculation of canvas.width * 0.078)
+    font: 'Impact',
+    verticalPosition: 25, // Default 25% from top
+    alignment: 'center', // Add default alignment
+  });
 
   useEffect(() => {
     async function loadBackgrounds() {
@@ -67,7 +74,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
     if (selectedTemplate && caption) {
       updatePreview();
     }
-  }, [selectedTemplate, caption, selectedBackground, isGreenscreenMode]);
+  }, [selectedTemplate, caption, selectedBackground, isGreenscreenMode, textSettings]);
 
   const handleAISelection = (template: MemeTemplate, aiCaption: string, allOptions: SelectedMeme) => {
     setSelectedTemplate(template);
@@ -97,7 +104,8 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         selectedTemplate.video_url,
         caption,
         selectedBackground?.url,
-        isGreenscreenMode
+        isGreenscreenMode,
+        textSettings
       );
 
       // Create download link and trigger download immediately
@@ -119,6 +127,13 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
     }
   };
 
+  const updateTextSetting = (key: keyof TextSettings, value: number | string) => {
+    setTextSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
   const updatePreview = async () => {
     if (!selectedTemplate) return;
     
@@ -127,7 +142,8 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         selectedTemplate.video_url,
         caption,
         selectedBackground?.url,
-        isGreenscreenMode
+        isGreenscreenMode,
+        textSettings
       );
       setPreviewCanvas(canvas);
     } catch (error) {
@@ -144,10 +160,12 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
           <div className="border rounded-lg p-4 bg-white">
             <div className="flex flex-col lg:flex-row gap-8">
               <div className="w-full lg:w-1/2 space-y-4">
+                <h2 className="text-lg font-medium mb-2">Editor</h2>
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
                     Caption
-                  </label>
+                  </h3>
                   <textarea
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
@@ -155,6 +173,104 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
                     rows={3}
                     placeholder="Enter your caption..."
                   />
+                  
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                      Advanced Options
+                    </summary>
+                    
+                    <div className="mt-4 space-y-4 pl-2">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Font Size</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min="40"
+                            max="120"
+                            value={textSettings.size}
+                            onChange={(e) => updateTextSetting('size', parseInt(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-sm text-gray-600 w-12">{textSettings.size}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Font Family</label>
+                        <select
+                          value={textSettings.font}
+                          onChange={(e) => updateTextSetting('font', e.target.value)}
+                          className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="Impact">Impact (Classic Meme)</option>
+                          <option value="Arial Black">Arial Black</option>
+                          <option value="Comic Sans MS">Comic Sans MS</option>
+                          <option value="Helvetica">Helvetica</option>
+                          <option value="Futura">Futura</option>
+                          <option value="Oswald">Oswald</option>
+                          <option value="Anton">Anton</option>
+                          <option value="Roboto">Roboto</option>
+                          <option value="Times New Roman">Times New Roman</option>
+                          <option value="Verdana">Verdana</option>
+                          <option value="Courier New">Courier New</option>
+                          <option value="Bebas Neue">Bebas Neue</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Vertical Position (%)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min="5"
+                            max="95"
+                            value={textSettings.verticalPosition}
+                            onChange={(e) => updateTextSetting('verticalPosition', parseInt(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-sm text-gray-600 w-12">{textSettings.verticalPosition}%</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Text Alignment</label>
+                        <div className="flex gap-0 border rounded-md overflow-hidden">
+                          <button
+                            onClick={() => updateTextSetting('alignment', 'left')}
+                            className={`flex-1 p-2 text-sm ${
+                              textSettings.alignment === 'left' 
+                                ? 'bg-blue-100 text-blue-700' 
+                                : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            Left
+                          </button>
+                          <div className="w-px bg-gray-200" />
+                          <button
+                            onClick={() => updateTextSetting('alignment', 'center')}
+                            className={`flex-1 p-2 text-sm ${
+                              textSettings.alignment === 'center' 
+                                ? 'bg-blue-100 text-blue-700' 
+                                : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            Center
+                          </button>
+                          <div className="w-px bg-gray-200" />
+                          <button
+                            onClick={() => updateTextSetting('alignment', 'right')}
+                            className={`flex-1 p-2 text-sm ${
+                              textSettings.alignment === 'right' 
+                                ? 'bg-blue-100 text-blue-700' 
+                                : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            Right
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
                 </div>
 
                 {isGreenscreenMode && (
@@ -180,7 +296,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
                 )}
 
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Original Video</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Video</h3>
                   <video
                     ref={previewVideoRef}
                     src={selectedTemplate.video_url}
@@ -191,7 +307,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
               </div>
 
               <div className="w-full lg:w-1/2">
-                <h3 className="text-lg font-medium mb-2">Preview</h3>
+                <h2 className="text-lg font-medium mb-2">Preview</h2>
                 <div className="lg:sticky lg:top-4">
                   <div className="relative aspect-[9/16] w-full">
                     {previewCanvas && (

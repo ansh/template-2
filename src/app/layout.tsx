@@ -18,6 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Anton&family=Bebas+Neue&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className={`min-h-screen bg-gray-50 ${inter.className}`}>
         <Navigation />
         <main className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">

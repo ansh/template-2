@@ -8,15 +8,30 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
 
+// Import or define the SelectedMeme interface
+interface SelectedMeme {
+  templates: {
+    template: MemeTemplate;
+    captions: string[];
+  }[];
+}
+
+interface TemplateData {
+  template: MemeTemplate;
+  captions: string[];
+}
+
 export default function MemeGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [generatedOptions, setGeneratedOptions] = useState<SelectedMeme | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
 
-  const handleAISelection = (template: MemeTemplate, aiCaption: string) => {
+  const handleAISelection = (template: MemeTemplate, aiCaption: string, allOptions: SelectedMeme) => {
     setSelectedTemplate(template);
     setCaption(aiCaption);
+    setGeneratedOptions(allOptions);
   };
 
   const handleBack = () => {
@@ -73,17 +88,9 @@ export default function MemeGenerator() {
 
   return (
     <div className="space-y-8">
-      {!selectedTemplate ? (
-        <AIMemeSelector onSelectTemplate={handleAISelection} />
-      ) : (
-        <div className="space-y-4">
-          <button
-            onClick={handleBack}
-            className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
-          >
-            ← Back to templates
-          </button>
-          
+      {selectedTemplate ? (
+        // Phase 3: Selected template with editor and other options
+        <>
           <div className="border rounded-lg p-4 bg-white">
             <div className="space-y-4 mb-4">
               <div>
@@ -98,7 +105,6 @@ export default function MemeGenerator() {
                   placeholder="Enter your caption..."
                 />
               </div>
-
             </div>
 
             <video
@@ -106,12 +112,6 @@ export default function MemeGenerator() {
               src={selectedTemplate.video_url}
               className="w-full aspect-video object-cover rounded mb-4"
               controls
-              onPlay={() => {
-                // Ensure any existing processing is cleaned up
-                if (isDownloading) {
-                  previewVideoRef.current?.pause();
-                }
-              }}
             />
             
             <button
@@ -122,7 +122,47 @@ export default function MemeGenerator() {
               {isDownloading ? 'Processing...' : 'Download Meme'}
             </button>
           </div>
-        </div>
+
+          {generatedOptions && (
+            <div>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Other Options</h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                {generatedOptions.templates.map((templateData: TemplateData, templateIndex: number) => (
+                  <div key={templateIndex} className="p-4 border rounded-lg bg-gray-50">
+                    <h3 className="font-medium mb-4">{templateData.template.name}</h3>
+                    
+                    <div className="space-y-3 mb-6">
+                      <h4 className="font-medium text-blue-600">Captions:</h4>
+                      {templateData.captions.map((captionOption: string, captionIndex: number) => (
+                        <button
+                          key={captionIndex}
+                          onClick={() => handleAISelection(templateData.template, captionOption, generatedOptions)}
+                          className="w-full p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-2"
+                        >
+                          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">
+                            {captionIndex + 1}
+                          </span>
+                          <span>{captionOption}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="border rounded-lg overflow-hidden">
+                      <video 
+                        src={templateData.template.video_url}
+                        className="w-full aspect-video object-cover"
+                        controls
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        // Phase 1 & 2: Initial form or generated options
+        <AIMemeSelector onSelectTemplate={handleAISelection} />
       )}
     </div>
   );

@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import AIMemeSelector from './AIMemeSelector';
-import { MemeTemplate } from '@/lib/supabase/types';
-import { supabase } from '@/lib/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
-import { createMemeVideo } from '@/lib/utils/videoProcessor';
+import debounce from 'lodash/debounce';
+
+// Local imports
+import { MemeTemplate } from '@/lib/supabase/types';
 import { BackgroundImage, TextSettings } from '@/lib/types/meme';
+import { supabase } from '@/lib/supabase/client';
+import { createMemeVideo } from '@/lib/utils/videoProcessor';
 import { createMemePreview } from '@/lib/utils/previewGenerator';
-const debounce = require('lodash/debounce');
+
+// Components
+import AIMemeSelector from './AIMemeSelector';
 import ImagePicker from './ImagePicker';
 
 // Import or define the SelectedMeme interface

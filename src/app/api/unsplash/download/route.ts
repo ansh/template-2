@@ -2,21 +2,18 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
-  const photoId = searchParams.get('photoId');
+  const downloadLocation = searchParams.get('downloadLocation');
 
-  if (!photoId) {
-    return NextResponse.json({ error: 'Photo ID is required' }, { status: 400 });
+  if (!downloadLocation) {
+    return NextResponse.json({ error: 'Download location is required' }, { status: 400 });
   }
 
   try {
-    const response = await fetch(
-      `https://api.unsplash.com/photos/${photoId}/download`, 
-      {
-        headers: {
-          'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`,
-        },
-      }
-    );
+    const response = await fetch(downloadLocation, {
+      headers: {
+        'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error('Failed to track download');

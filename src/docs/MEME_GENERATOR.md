@@ -49,13 +49,39 @@ interface Label {
 ```
 
 ### 4. Background Image System
-- Unsplash API integration
+- Unsplash API integration with proper attribution
+  - Search functionality with debounced queries
+  - Pagination support with "Load More"
+  - Required attribution format:
+    ```html
+    Photo by <a href="https://unsplash.com/@username?utm_source=meme_generator&utm_medium=referral">Name</a> on <a href="https://unsplash.com/?utm_source=meme_generator&utm_medium=referral">Unsplash</a>
+    ```
+  - Download tracking via Unsplash API
+  - UTM parameters for proper referral tracking
+
 - Three input methods:
   1. Unsplash search
+     - Real-time search with 500ms debounce
+     - Grid view with attribution
+     - Preview thumbnails
+     - Proper photographer credits
   2. File upload (max 5MB)
   3. Direct URL input
-- Maintains 9:16 aspect ratio
-- Attribution handling for Unsplash images
+
+- Image handling:
+  - Maintains 9:16 aspect ratio
+  - Preview thumbnails in grid
+  - Full-size images for final render
+  - Proper error handling for failed loads
+
+- Attribution display:
+  - Overlay on background image
+  - Additional credit under preview
+  - Links to:
+    - Photographer's profile
+    - Photo page
+    - Unsplash homepage
+  - All links include proper UTM tracking
 
 ## Technical Implementation
 
@@ -68,12 +94,36 @@ interface Label {
 - Manages download process
 
 #### 2. ImagePicker
-- Modal component for background selection
-- Tabbed interface (Unsplash/Upload/Link)
-- Handles image processing and validation
+- Modal component for all background image selection methods
+- Three tabs:
+  1. Unsplash Search
+     - Integrated search with debounced queries
+     - Grid view with attribution
+     - Load more pagination
+  2. File Upload
+     - Drag and drop support
+     - 5MB size limit
+     - Image file validation
+  3. Link Input
+     - Direct URL input
+     - URL validation
+- Handles all image processing and validation
 - Responsive grid layout
+- Used in non-greenscreen mode
 
-#### 3. AIMemeSelector
+#### 3. UnsplashPicker
+- Specialized component for Unsplash-only image selection
+- Used within greenscreen mode
+- Features:
+  - Full-width search interface
+  - Real-time search with debounce
+  - Proper attribution overlay
+  - Download tracking integration
+  - UTM parameter handling
+- Direct integration with Unsplash API
+- Used in greenscreen mode for background selection
+
+#### 4. AIMemeSelector
 - Initial search interface
 - Mode selection (Regular/Greenscreen)
 - Template and caption generation
@@ -137,6 +187,15 @@ const [labels, setLabels] = useState<Label[]>([]);
 
 ### 1. Unsplash API
 ```typescript
+// Search endpoint
+interface UnsplashSearchParams {
+  query: string;
+  page: number;
+  per_page: number;
+  orientation: 'portrait';
+}
+
+// Image response structure
 interface UnsplashImage {
   id: string;
   urls: {
@@ -145,6 +204,25 @@ interface UnsplashImage {
   };
   user: {
     name: string;
+    username: string;
+    links: {
+      html: string;
+    };
+  };
+  links: {
+    html: string;
+  };
+}
+
+// Background image structure
+interface BackgroundImage {
+  id: string;
+  name: string;
+  url: string;
+  attribution?: {
+    photographerName: string;
+    photographerUrl: string;
+    photoUrl: string;
     username: string;
   };
 }
@@ -271,6 +349,15 @@ try {
    - Follow existing patterns
    - Test responsive behavior
 
+4. Background Integration
+- Always include proper Unsplash attribution
+- Implement download tracking
+- Use UTM parameters for all links
+- Handle image loading states
+- Maintain aspect ratio
+- Consider mobile performance
+- Implement proper error handling
+
 ## Testing Checklist
 
 - [ ] Video loading in both modes
@@ -281,3 +368,13 @@ try {
 - [ ] Error handling
 - [ ] Mobile responsiveness
 - [ ] Performance metrics
+
+Additional checks:
+- [ ] Unsplash search functionality
+- [ ] Attribution display
+- [ ] Download tracking
+- [ ] UTM parameters
+- [ ] Image loading states
+- [ ] Error handling
+- [ ] Mobile responsiveness
+- [ ] Background removal preview

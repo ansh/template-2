@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       },
       links: {
         html: photo.links.html, // Photo page URL
+        download_location: photo.links.download_location,
       },
     }));
 

@@ -14,6 +14,9 @@ interface UnsplashImage {
     name: string;
     username: string;
   };
+  links: {
+    download_location: string;
+  };
 }
 
 interface ImagePickerProps {
@@ -252,11 +255,22 @@ export default function ImagePicker({ onSelect, onClose, isOpen }: ImagePickerPr
                     {images.map((image) => (
                       <button
                         key={image.id}
-                        onClick={() => onSelect({
-                          id: image.id,
-                          name: `Unsplash photo by ${image.user.name}`,
-                          url: image.urls.regular
-                        })}
+                        onClick={async () => {
+                          // Track download
+                          try {
+                            await fetch(`/api/unsplash/download?downloadLocation=${encodeURIComponent(image.links.download_location)}`, {
+                              method: 'POST',
+                            });
+                          } catch (error) {
+                            console.error('Failed to track download:', error);
+                          }
+                          
+                          onSelect({
+                            id: image.id,
+                            name: `Unsplash photo by ${image.user.name}`,
+                            url: image.urls.regular
+                          });
+                        }}
                         className="group relative aspect-[9/16] overflow-hidden rounded-lg border hover:border-blue-500 transition-colors"
                       >
                         <img 

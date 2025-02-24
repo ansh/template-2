@@ -105,7 +105,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
   }, [isGreenscreenMode]);
 
   useEffect(() => {
-    if (selectedTemplate && caption) {
+    if (selectedTemplate && (caption || labels.length > 0)) {
       updatePreview();
     }
   }, [selectedTemplate, caption, selectedBackground, isGreenscreenMode, textSettings, labels]);
@@ -181,7 +181,15 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
         textSettings,
         labels
       );
-      setPreviewCanvas(canvas);
+      
+      // Force a re-render of the preview
+      if (previewCanvas) {
+        const ctx = previewCanvas.getContext('2d');
+        ctx?.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        ctx?.drawImage(canvas, 0, 0);
+      } else {
+        setPreviewCanvas(canvas);
+      }
     } catch (error) {
       console.error('Error generating preview:', error);
       toast.error('Failed to generate preview');

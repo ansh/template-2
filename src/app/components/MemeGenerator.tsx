@@ -14,7 +14,7 @@ import { createMemePreview } from '@/lib/utils/previewGenerator';
 
 // Components
 import AIMemeSelector from './AIMemeSelector';
-import ImagePicker from './ImagePicker';
+import ImagePicker from '@/app/components/ImagePicker';
 
 // Import or define the SelectedMeme interface
 interface SelectedMeme {

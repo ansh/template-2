@@ -20,138 +20,103 @@ export async function createMemePreview(
 ): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
-    const backgroundImg = new Image();
-    let isBackgroundLoaded = false;
-    
-    if (isGreenscreen && backgroundImage) {
-      backgroundImg.crossOrigin = 'anonymous';
-      backgroundImg.onload = () => {
-        isBackgroundLoaded = true;
-        if (video.readyState >= 2) {
-          renderPreview();
-        }
-      };
-      backgroundImg.src = backgroundImage;
-    }
-
     video.src = videoUrl;
     video.crossOrigin = 'anonymous';
-    
-    const renderPreview = () => {
+
+    video.onloadedmetadata = () => {
+      // Seek to 0.1s for stable frame
+      video.currentTime = 0.1;
+    };
+
+    // Wait for the seek to complete
+    video.onseeked = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
       canvas.width = 1080;
       canvas.height = 1920;
-      
-      const videoAspect = video.videoWidth / video.videoHeight;
-      const targetWidth = canvas.width;
-      const targetHeight = targetWidth / videoAspect;
-      const yOffset = (canvas.height - targetHeight) / 2;
 
-      // Clear canvas
+      // Draw black background by default
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (isGreenscreen && isBackgroundLoaded) {
-        // Draw background
-        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-        
-        // Create temporary canvas for green screen processing
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d')!;
-        tempCanvas.width = targetWidth;
-        tempCanvas.height = targetHeight;
-        
-        // Draw video frame
-        tempCtx.drawImage(video, 0, 0, targetWidth, targetHeight);
-        
-        // Process green screen
-        const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
-        const pixels = imageData.data;
-
-        for (let i = 0; i < pixels.length; i += 4) {
-          const r = pixels[i];
-          const g = pixels[i + 1];
-          const b = pixels[i + 2];
-          
-          if (g > 100 && g > 1.4 * r && g > 1.4 * b) {
-            pixels[i + 3] = 0;
-          }
-        }
-
-        tempCtx.putImageData(imageData, 0, 0);
-        ctx.drawImage(tempCanvas, 0, yOffset, targetWidth, targetHeight);
+      // If there's a background image and we're in greenscreen mode, use it
+      if (isGreenscreen && backgroundImage) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = backgroundImage;
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          drawVideoAndText();
+        };
       } else {
-        // Draw regular video frame
-        ctx.drawImage(video, 0, yOffset, targetWidth, targetHeight);
+        drawVideoAndText();
       }
 
-      // Draw caption
-      const fontSize = textSettings ? textSettings.size : Math.floor(canvas.width * 0.078);
-      ctx.font = `bold ${fontSize}px ${textSettings?.font || 'Impact'}`;
-      ctx.textAlign = textSettings?.alignment || 'center';
-      ctx.textBaseline = 'bottom';
-      
-      const maxWidth = canvas.width * 0.9;
-      const lines = wrapText(ctx, caption, maxWidth);
-      const lineHeight = fontSize * 1.2;
+      function drawVideoAndText() {
+        const videoAspect = video.videoWidth / video.videoHeight;
+        const targetWidth = canvas.width;
+        const targetHeight = targetWidth / videoAspect;
+        const yOffset = (canvas.height - targetHeight) / 2;
 
-      // Calculate vertical position
-      const textY = canvas.height * (textSettings?.verticalPosition || 25) / 100;
+        // Draw video frame
+        ctx.drawImage(video, 0, yOffset, targetWidth, targetHeight);
 
-      // Calculate x position based on alignment
-      const x = textSettings?.alignment === 'left' 
-        ? canvas.width * 0.05 
-        : textSettings?.alignment === 'right' 
-          ? canvas.width * 0.95 
-          : canvas.width / 2;
-
-      lines.forEach((line, index) => {
-        const y = textY + (index * lineHeight);
+        // Draw caption
+        const fontSize = textSettings ? textSettings.size : Math.floor(canvas.width * 0.078);
+        ctx.font = `bold ${fontSize}px ${textSettings?.font || 'Impact'}`;
+        ctx.textAlign = textSettings?.alignment || 'center';
+        ctx.textBaseline = 'bottom';
         
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = fontSize * 0.08;
-        ctx.strokeText(line, x, y);
-        
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(line, x, y);
-      });
+        const maxWidth = canvas.width * 0.9;
+        const lines = wrapText(ctx, caption, maxWidth);
+        const lineHeight = fontSize * 1.2;
 
-      // Draw labels
-      if (labels?.length) {
-        labels.forEach(label => {
-          if (!label.text.trim()) return;
+        // Calculate vertical position
+        const textY = canvas.height * (textSettings?.verticalPosition || 25) / 100;
+
+        // Calculate x position based on alignment
+        const x = textSettings?.alignment === 'left' 
+          ? canvas.width * 0.05 
+          : textSettings?.alignment === 'right' 
+            ? canvas.width * 0.95 
+            : canvas.width / 2;
+
+        lines.forEach((line, index) => {
+          const y = textY + (index * lineHeight);
           
-          const x = canvas.width * (label.horizontalPosition / 100);
-          const y = canvas.height * (label.verticalPosition / 100);
-          
-          // Use label's size instead of caption size
-          ctx.font = `bold ${label.size}px ${label.font}`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          
-          // Draw text with outline - use label.size for line width
           ctx.strokeStyle = '#000000';
-          ctx.lineWidth = label.size * 0.08;  // Changed from fontSize to label.size
-          ctx.strokeText(label.text, x, y);
+          ctx.lineWidth = fontSize * 0.08;
+          ctx.strokeText(line, x, y);
           
           ctx.fillStyle = '#FFFFFF';
-          ctx.fillText(label.text, x, y);
+          ctx.fillText(line, x, y);
         });
-      }
 
-      resolve(canvas);
-    };
+        // Draw labels
+        if (labels?.length) {
+          labels.forEach(label => {
+            if (!label.text.trim()) return;
+            
+            const x = canvas.width * (label.horizontalPosition / 100);
+            const y = canvas.height * (label.verticalPosition / 100);
+            
+            // Use label's size instead of caption size
+            ctx.font = `bold ${label.size}px ${label.font}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Draw text with outline - use label.size for line width
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = label.size * 0.08;  // Changed from fontSize to label.size
+            ctx.strokeText(label.text, x, y);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(label.text, x, y);
+          });
+        }
 
-    video.onloadeddata = () => {
-      // Seek to 0.1 seconds for stable green screen preview
-      video.currentTime = 0.1;
-    };
-
-    video.onseeked = () => {
-      if (!isGreenscreen || (isGreenscreen && isBackgroundLoaded)) {
-        renderPreview();
+        resolve(canvas);
       }
     };
 

@@ -20,10 +20,14 @@ export interface MemeResponse {
 
 export interface BackgroundImage {
   id: string;
-  url: string;
   name: string;
-  tags: string[];
-  aspect_ratio: "9:16" | "16:9" | "1:1";
+  url: string;
+  attribution?: {
+    photographerName: string;
+    photographerUrl: string;
+    photoUrl: string;
+    username: string;
+  };
 }
 
 export interface TextSettings {

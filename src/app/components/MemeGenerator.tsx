@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import AIMemeSelector from './AIMemeSelector';
 import { MemeTemplate } from '@/lib/supabase/types';
 import { supabase } from '@/lib/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
-import { BackgroundImage } from '@/lib/types/meme';
+import { BackgroundImage, TextSettings } from '@/lib/types/meme';
 import { createMemePreview } from '@/lib/utils/previewGenerator';
-import { TextSettings } from '@/lib/types/meme';
+import debounce from 'lodash/debounce';
+import ImagePicker from './ImagePicker';
 
 // Import or define the SelectedMeme interface
 interface SelectedMeme {
@@ -39,6 +40,19 @@ interface Label {
   font: string;
 }
 
+// Add this interface near your other interfaces
+interface UnsplashImage {
+  id: string;
+  urls: {
+    regular: string;
+    small: string;
+  };
+  user: {
+    name: string;
+    username: string;
+  };
+}
+
 export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeGeneratorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [caption, setCaption] = useState<string>('');
@@ -56,6 +70,11 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
     alignment: 'center', // Add default alignment
   });
   const [labels, setLabels] = useState<Label[]>([]);
+  const [backgroundSearch, setBackgroundSearch] = useState('');
+  const [unsplashImages, setUnsplashImages] = useState<UnsplashImage[]>([]);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [page, setPage] = useState(1);
+  const [isUnsplashPickerOpen, setIsUnsplashPickerOpen] = useState(false);
 
   useEffect(() => {
     async function loadBackgrounds() {
@@ -186,6 +205,41 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
   const deleteLabel = (id: string) => {
     setLabels(labels.filter(label => label.id !== id));
   };
+
+  const searchUnsplash = useCallback(
+    debounce(async (query: string, pageNum: number) => {
+      if (!query.trim()) {
+        setUnsplashImages([]);
+        return;
+      }
+
+      setIsLoadingImages(true);
+      try {
+        const response = await fetch(
+          `/api/unsplash/search?query=${encodeURIComponent(query)}&page=${pageNum}`
+        );
+        const data = await response.json();
+        
+        if (pageNum === 1) {
+          setUnsplashImages(data.results);
+        } else {
+          setUnsplashImages(prev => [...prev, ...data.results]);
+        }
+      } catch (error) {
+        console.error('Error searching Unsplash:', error);
+        toast.error('Failed to load images');
+      } finally {
+        setIsLoadingImages(false);
+      }
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    if (backgroundSearch.trim()) {
+      searchUnsplash(backgroundSearch, page);
+    }
+  }, [backgroundSearch, page]);
 
   return (
     <div className="space-y-8">
@@ -416,44 +470,102 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
                   ))}
                 </div>
 
-                {isGreenscreenMode && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Choose Background</h3>
-                    {isLoadingBackgrounds ? (
-                      <div className="text-center py-4">Loading backgrounds...</div>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-4">
-                        {backgrounds.map(bg => (
-                          <button
-                            key={bg.id}
-                            onClick={() => setSelectedBackground(bg)}
-                            className={`relative aspect-[9/16] overflow-hidden rounded-lg border-2 
-                              ${selectedBackground?.id === bg.id ? 'border-blue-500' : 'border-transparent'}`}
-                          >
-                            <img src={bg.url} alt={bg.name} className="w-full h-full object-cover" />
-                          </button>
-                        ))}
+                <div className="flex gap-4">
+                  {isGreenscreenMode ? (
+                    // Greenscreen layout - two tall columns
+                    <>
+                      <div className="w-[200px] flex-shrink-0">
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">Video</h3>
+                        <video
+                          ref={previewVideoRef}
+                          src={selectedTemplate.video_url}
+                          className="w-full aspect-[9/16] object-cover rounded"
+                          controls
+                        />
                       </div>
-                    )}
-                  </div>
-                )}
 
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Video</h3>
-                  <video
-                    ref={previewVideoRef}
-                    src={selectedTemplate.video_url}
-                    className="w-full aspect-video object-cover rounded"
-                    controls
-                  />
+                      <div className="w-[200px] flex-shrink-0">
+                        <h3 className="text-sm font-medium mb-2">Background</h3>
+                        {selectedBackground ? (
+                          <div className="relative aspect-[9/16] rounded-lg overflow-hidden border">
+                            <img 
+                              src={selectedBackground.url} 
+                              alt={selectedBackground.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1.5">
+                              Photo by{' '}
+                              <a 
+                                href={`https://unsplash.com/photos/${selectedBackground.id}?utm_source=meme_generator&utm_medium=referral`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white underline"
+                              >
+                                {selectedBackground.name.replace('Unsplash photo by ', '')}
+                              </a>
+                              {' '}on{' '}
+                              <a
+                                href="https://unsplash.com/?utm_source=meme_generator&utm_medium=referral"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white underline"
+                              >
+                                Unsplash
+                              </a>
+                            </div>
+                            <button
+                              onClick={() => setSelectedBackground(null)}
+                              className="absolute top-2 right-2 p-1 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => setIsUnsplashPickerOpen(true)}
+                            className="w-full aspect-[9/16] flex flex-col items-center justify-center border-2 border-dashed rounded-lg hover:bg-gray-50 transition-all group relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white opacity-50" />
+                            <div className="relative flex flex-col items-center">
+                              <div className="p-2 rounded-full bg-blue-50 mb-3 group-hover:bg-blue-100 transition-colors">
+                                <svg 
+                                  className="w-5 h-5 text-blue-600" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                              </div>
+                              <p className="text-sm font-medium text-gray-900">Choose background</p>
+                              <p className="text-xs text-gray-500 mt-1">Add an image for your greenscreen</p>
+                            </div>
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    // Non-greenscreen layout - single wide video
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Video</h3>
+                      <video
+                        ref={previewVideoRef}
+                        src={selectedTemplate.video_url}
+                        className="w-full aspect-video object-cover rounded"
+                        controls
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="w-full lg:w-1/2">
                 <h2 className="text-lg font-medium mb-2">Preview</h2>
                 <div className="lg:sticky lg:top-4">
-                  <div className="relative aspect-[9/16] w-full">
-                    {previewCanvas && (
+                  <div className="relative aspect-[9/16] w-full bg-black rounded-lg">
+                    {previewCanvas ? (
                       <div className="absolute inset-0">
                         <img 
                           src={previewCanvas.toDataURL()} 
@@ -461,9 +573,36 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
                           className="w-full h-full object-contain"
                         />
                       </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                        <p className="text-sm">Preview will appear here</p>
+                      </div>
                     )}
                   </div>
                 </div>
+
+                {selectedBackground && (
+                  <div className="text-xs text-gray-500 mt-1.5">
+                    Background by{' '}
+                    <a 
+                      href={`https://unsplash.com/photos/${selectedBackground.id}?utm_source=meme_generator&utm_medium=referral`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-500 underline"
+                    >
+                      {selectedBackground.name.replace('Unsplash photo by ', '')}
+                    </a>
+                    {' '}on{' '}
+                    <a
+                      href="https://unsplash.com/?utm_source=meme_generator&utm_medium=referral"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-500 underline"
+                    >
+                      Unsplash
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -523,6 +662,15 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
           onToggleMode={onToggleMode}
         />
       )}
+
+      <ImagePicker
+        isOpen={isUnsplashPickerOpen}
+        onClose={() => setIsUnsplashPickerOpen(false)}
+        onSelect={(image) => {
+          setSelectedBackground(image);
+          setIsUnsplashPickerOpen(false);
+        }}
+      />
     </div>
   );
 } 

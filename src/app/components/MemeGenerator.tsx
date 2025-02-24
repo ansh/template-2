@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
-import debounce from 'lodash/debounce';
+import _ from 'lodash';
 
 // Local imports
 import { MemeTemplate } from '@/lib/supabase/types';
@@ -211,7 +211,7 @@ export default function MemeGenerator({ isGreenscreenMode, onToggleMode }: MemeG
   };
 
   const searchUnsplash = useCallback(
-    debounce(async (query: string, pageNum: number) => {
+    _.debounce(async (query: string, pageNum: number) => {
       if (!query.trim()) {
         setUnsplashImages([]);
         return;

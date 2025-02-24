@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 import { createMemeVideo } from '@/lib/utils/videoProcessor';
 import { BackgroundImage, TextSettings } from '@/lib/types/meme';
 import { createMemePreview } from '@/lib/utils/previewGenerator';
-import { debounce } from 'lodash';
+const debounce = require('lodash/debounce');
 import ImagePicker from './ImagePicker';
 
 // Import or define the SelectedMeme interface

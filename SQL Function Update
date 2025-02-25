@@ -1,0 +1,33 @@
+-- Drop existing function
+DROP FUNCTION IF EXISTS match_meme_templates(vector(1536), float, int, boolean);
+
+-- Create updated version with greenscreen filter
+CREATE FUNCTION match_meme_templates(
+  query_embedding vector(1536),
+  match_threshold float,
+  match_count int,
+  is_greenscreen_filter boolean
+)
+RETURNS TABLE (
+  id uuid,
+  name text,
+  video_url text,
+  instructions text,
+  similarity float
+)
+LANGUAGE SQL
+AS $$
+  SELECT 
+    meme_templates.id,
+    meme_templates.name,
+    meme_templates.video_url,
+    meme_templates.instructions,
+    1 - (meme_templates.embedding <=> query_embedding) as similarity
+  FROM meme_templates
+  WHERE 
+    embedding IS NOT NULL AND
+    is_greenscreen = is_greenscreen_filter AND
+    (1 - (meme_templates.embedding <=> query_embedding)) > match_threshold
+  ORDER BY embedding <=> query_embedding
+  LIMIT match_count;
+$$; 

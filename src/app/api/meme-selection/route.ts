@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { generateEmbedding } from '@/lib/utils/embeddings';
+import { generateEmbedding, cosineSimilarity } from '@/lib/utils/embeddings';
 import { MemeTemplate } from '@/lib/supabase/types';
 
 // Use environment variables with error checking
@@ -39,11 +39,19 @@ export async function POST(req: Request) {
     const promptEmbedding = await generateEmbedding(prompt);
     console.log('Generated embedding successfully');
 
+    // Add more detailed logging
+    console.log('Calling match_meme_templates with params:', {
+      embedding_length: promptEmbedding.length,
+      match_threshold: 0.0,
+      match_count: 5,
+      is_greenscreen_filter: isGreenscreenMode
+    });
+
     // Query templates using vector similarity, adding greenscreen filter
     const { data: templates, error } = await supabase
       .rpc('match_meme_templates', {
         query_embedding: promptEmbedding,
-        match_threshold: 0.8,
+        match_threshold: 0.0,
         match_count: 5,
         is_greenscreen_filter: isGreenscreenMode
       });
@@ -53,6 +61,8 @@ export async function POST(req: Request) {
       throw error;
     }
 
+    console.log('Templates returned from similarity search:', templates?.length || 0);
+    
     // If no matches, use fallback with greenscreen filter
     if (!templates || templates.length === 0) {
       console.log('No templates found, using fallback');
@@ -70,7 +80,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ templates: fallbackTemplates });
     }
 
-    return NextResponse.json({ templates });
+    if (templates && templates.length > 0) {
+      return NextResponse.json({ templates });
+    }
 
   } catch (error: any) {
     console.error('Error in meme selection:', error);
